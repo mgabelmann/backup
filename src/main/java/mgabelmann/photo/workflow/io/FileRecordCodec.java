@@ -14,7 +14,8 @@ import java.util.Collection;
 import mgabelmann.photo.workflow.HashType;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Handles the reading and writing of FileRecord objects. 
@@ -22,7 +23,7 @@ import org.apache.log4j.Logger;
  */
 public final class FileRecordCodec {
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(FileRecordCodec.class);
+    private static final Logger LOG = LogManager.getLogger(FileRecordCodec.class);
     
     /** Date mask format. */
     private static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -124,32 +125,17 @@ public final class FileRecordCodec {
      * @throws IllegalArgumentException invalid type
      */
     public static String calculateChecksum(final File f, final HashType type) throws IOException {
-        String checksum;
-        
         try (FileInputStream fis = new FileInputStream(f)) {
-	        switch(type) {
-	            case MD5:
-	                checksum = DigestUtils.md5Hex(fis);
-	                break;
-	            case SHA:
-	                checksum = DigestUtils.shaHex(fis);
-	                break;
-	            case SHA256:
-	                checksum = DigestUtils.sha256Hex(fis);
-	                break;
-	            case SHA384:
-	                checksum = DigestUtils.sha384Hex(fis);
-	                break;
-	            case SHA512:
-	                checksum = DigestUtils.sha512Hex(fis);
-	                break;
-	            default:
-	                //should never hit this code, but you never know
-	                throw new IllegalArgumentException("invalid hash function " + type);
-	        }
+            return switch (type) {
+                case MD5 -> DigestUtils.md5Hex(fis);
+                case SHA256 -> DigestUtils.sha256Hex(fis);
+                case SHA384 -> DigestUtils.sha384Hex(fis);
+                case SHA512 -> DigestUtils.sha512Hex(fis);
+                default ->
+                        //should never hit this code, but you never know
+                        throw new IllegalArgumentException("invalid hash function " + type);
+            };
         }
-        
-        return checksum;
     }
     
     /**
@@ -159,30 +145,16 @@ public final class FileRecordCodec {
      * @return hex checksum
      */
     public static String calculateChecksum(final String s, final HashType type) {
-        String checksum;
-        
-        switch(type) {
-            case MD5:
-                checksum = DigestUtils.md5Hex(s);
-                break;
-            case SHA:
-                checksum = DigestUtils.shaHex(s);
-                break;
-            case SHA256:
-                checksum = DigestUtils.sha256Hex(s);
-                break;
-            case SHA384:
-                checksum = DigestUtils.sha384Hex(s);
-                break;
-            case SHA512:
-                checksum = DigestUtils.sha512Hex(s);
-                break;
-            default:
-                //should never hit this code, but you never know
-                throw new IllegalArgumentException("invalid hash function " + type);
-        }
-        
-        return checksum;
+        return switch (type) {
+            case MD5 -> DigestUtils.md5Hex(s);
+            case SHA256 -> DigestUtils.sha256Hex(s);
+            case SHA384 -> DigestUtils.sha384Hex(s);
+            case SHA512 -> DigestUtils.sha512Hex(s);
+            default ->
+                    //should never hit this code, but you never know
+                    throw new IllegalArgumentException("invalid hash function " + type);
+        };
+
     }
     
     /**
@@ -200,6 +172,7 @@ public final class FileRecordCodec {
         }
         
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+
         return new FileRecord(
             fields[0], 
             fields[4], 

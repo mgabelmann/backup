@@ -1,29 +1,32 @@
 package mgabelmann.photo.workflow.io;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.DefaultConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.apache.log4j.BasicConfigurator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 public class FileRecordCodecTest {
     private Collection<FileRecord> records;
     
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws Exception {
-        BasicConfigurator.configure();
+        Configurator.initialize(new DefaultConfiguration());
+        Configurator.setRootLevel(Level.INFO);
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        records = new ArrayList<FileRecord>();
+        records = new ArrayList<>();
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         records = null;
     }

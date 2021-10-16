@@ -10,9 +10,8 @@ import java.util.Date;
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.exception.WorkflowRuntimeException;
 import mgabelmann.util.FileUtil;
-
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Copies a number of files and/or directories to a new directory/file structure
@@ -35,7 +34,7 @@ import org.apache.log4j.Logger;
  */
 public final class Archive extends AbstractWorkflow {
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(Archive.class);
+    private static final Logger LOG = LogManager.getLogger(Archive.class);
     
     /** 
      * Represents the number of characters in the archive directory name.
@@ -53,8 +52,6 @@ public final class Archive extends AbstractWorkflow {
      * @param args
      */
     public static void main(final String[] args) {
-        BasicConfigurator.configure();
-        
         final Archive archive = new Archive(
             new File("M:/Photos/Mike/03_raw/01_working/2010"),
             new File("C:/Users/Mike/Desktop/tmp"),
@@ -78,7 +75,7 @@ public final class Archive extends AbstractWorkflow {
     public Archive(final File dirLocal, final File dirRemote, final HashType type, final boolean verify) {
         super(dirLocal, dirRemote, type, verify);
         
-        records = new ArrayList<FileRecord>();
+        records = new ArrayList<>();
     }
    
     /** {@inheritDoc} */

@@ -3,10 +3,10 @@ package mgabelmann.photo.workflow.io;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.util.FileUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 
@@ -14,7 +14,7 @@ import mgabelmann.util.FileUtil;
  */
 public final class ChecksumCompare implements Runnable {
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(ChecksumCompare.class);
+    private static final Logger LOG = LogManager.getLogger(ChecksumCompare.class);
     
     private final transient File source;
     private final transient File dest;

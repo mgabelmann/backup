@@ -1,11 +1,10 @@
 package mgabelmann.junit;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.io.IOException;
-
-import org.junit.Before;
 
 /**
  * 
@@ -21,7 +20,7 @@ public abstract class AbstractFileSystemTest {
     /** Directory where unit tests will be performed. */
     protected File tstDir;
     
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         tstDir = new File(tmpDirProperty, tstDirName);
         
@@ -32,8 +31,8 @@ public abstract class AbstractFileSystemTest {
             throw new IOException("unable to create test directory " + tstDir.getAbsolutePath());
         }
         
-        assertTrue(tstDir.exists());
-        assertTrue(tstDir.canRead());
-        assertTrue(tstDir.canWrite());
+        Assertions.assertTrue(tstDir.exists());
+        Assertions.assertTrue(tstDir.canRead());
+        Assertions.assertTrue(tstDir.canWrite());
     }
 }

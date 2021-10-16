@@ -10,9 +10,8 @@ import java.util.Date;
 import mgabelmann.photo.workflow.gui.PhotoManifestGUI;
 import mgabelmann.photo.workflow.io.FileRecord;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
-
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 
@@ -23,12 +22,12 @@ public final class PhotoManifest {
     /** Mode of application. */
     private enum Mode {
         GUI, //Graphical Mode
-        CLI, //Command line Mode
-        ;
+        CLI  //Command line Mode
+
     }
     
     /** Logger. */
-    private final static Logger LOG = Logger.getLogger(PhotoManifest.class);
+    private final static Logger LOG = LogManager.getLogger(PhotoManifest.class);
     
     /** Mode of application. */
     private final transient Mode mode;
@@ -51,7 +50,7 @@ public final class PhotoManifest {
     public PhotoManifest(final Mode mode, final File rootdir) {
         this.mode = mode;
         this.rootdir = rootdir;
-        this.records = new ArrayList<FileRecord>();
+        this.records = new ArrayList<>();
         
         if (mode == Mode.GUI) {
             this.pmg = new PhotoManifestGUI(this);
@@ -161,9 +160,6 @@ public final class PhotoManifest {
      * @param args arguments
      */
     public static void main(final String[] args) {
-        //FIXME: remove later
-        BasicConfigurator.configure();
-        
         Mode mode = Mode.GUI;
         File directory = null;
         

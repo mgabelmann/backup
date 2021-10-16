@@ -8,8 +8,9 @@ import java.nio.channels.FileChannel;
 
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -17,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public final class FileUtil {
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(FileUtil.class);
+    private static final Logger LOG = LogManager.getLogger(FileUtil.class);
     
     /** Do not instantiate this class. */
     private FileUtil() {}

@@ -22,25 +22,30 @@ import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.PhotoManifest;
 import mgabelmann.photo.workflow.io.FileRecord;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
+/**
+ *
+ * @author mgabe
+ */
 public final class PhotoManifestGUI 
     extends JFrame
     implements PropertyChangeListener, ActionListener {
     
     
     /** Logger. */
-    private final static Logger LOG = Logger.getLogger(PhotoManifestGUI.class);
+    private final static Logger LOG = LogManager.getLogger(PhotoManifestGUI.class);
     
     /** Parent. */
-    private PhotoManifest pm;
+    private final PhotoManifest pm;
     
     //-------------------------- GUI COMPONENTS -------------------------------
     private JLabel labelFile;
     private JProgressBar progressBar;
     
-    private JComboBox cmbType;
+    private JComboBox<HashType> cmbType;
     private JButton btnFile;
     private JButton btnProcess;
     private JButton btnVerify;
@@ -67,7 +72,7 @@ public final class PhotoManifestGUI
         Panel p1 = new Panel(new GridLayout(8,1));
         labelFile = new JLabel("");
         progressBar = new JProgressBar();
-        cmbType = new JComboBox();
+        cmbType = new JComboBox<>();
         btnFile = new JButton("Locate Directory");
         btnProcess = new JButton("Hash Files");
         btnVerify = new JButton("Verify Files");

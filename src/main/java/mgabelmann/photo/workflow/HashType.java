@@ -1,6 +1,3 @@
-/**
- * 
- */
 package mgabelmann.photo.workflow;
 
 /**
@@ -10,9 +7,7 @@ package mgabelmann.photo.workflow;
  */
 public enum HashType {
 	MD5,
-	SHA,
 	SHA256,
 	SHA384,
-	SHA512,
-	;
+	SHA512
 }

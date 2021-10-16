@@ -33,7 +33,7 @@ public enum ByteConversion {
      * @param abbrev short name
      * @param size (in bytes)
      */
-    private ByteConversion(
+    ByteConversion(
         final String name, 
         final String abbrev,
         final long size) {

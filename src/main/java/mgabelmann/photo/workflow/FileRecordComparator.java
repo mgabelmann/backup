@@ -11,13 +11,12 @@ import mgabelmann.photo.workflow.io.FileRecord;
  */
 public final class FileRecordComparator implements Comparator<FileRecord>, Serializable {
     /** Fields available for ordering. */
-    public static enum Field {
+    public enum Field {
         PATH,
         SUM,
         SIZE,
         DATE,
-        TYPE,
-        ;
+        TYPE
     }
     
     /** Field being sorted. */

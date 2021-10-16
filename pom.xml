@@ -1,37 +1,73 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>mikegabelmann</groupId>
-  <artifactId>photo</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+    <parent>
+        <groupId>ca.mikegabelmann.maven</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
-  <name>backup</name>
-  <url>http://maven.apache.org</url>
+    <groupId>mikegabelmann</groupId>
+    <artifactId>photo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+    <name>backup</name>
+    <description>
+        Backup files if they don't exist in the destination directory or newer. Also provides some other
+        utilities for performing backups.
+    </description>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>log4j</groupId>
-    	<artifactId>log4j</artifactId>
-    	<version>1.2.17</version>
-    </dependency>
-    <dependency>
-    	<groupId>commons-codec</groupId>
-    	<artifactId>commons-codec</artifactId>
-    	<version>1.9</version>
-    </dependency>
-  </dependencies>
+    <scm>
+        <connection>scm:git:https://github.com/mgabelmann/backup.git</connection>
+        <developerConnection>scm:git:https://github.com/mgabelmann/backup.git</developerConnection>
+        <url>https://github.com/mgabelmann/backup</url>
+    </scm>
+
+    <properties>
+
+    </properties>
+
+    <dependencies>
+        <!-- logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.15</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- TESTING -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+        </plugins>
+    </build>
+
+    <reports>
+
+    </reports>
 </project>

@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit;
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.exception.WorkflowRuntimeException;
 import mgabelmann.util.FileUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 
 /**
  * Simply copies the local directory structure to a remote directory structure without modifying it.
@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
  */
 public final class Backup extends AbstractWorkflow {
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(Backup.class);
+    private static final Logger LOG = LogManager.getLogger(Backup.class);
     
     /** 
      * Service that ensures that the file checksums are threaded for 
@@ -37,11 +37,10 @@ public final class Backup extends AbstractWorkflow {
      * @param args arguments
      */
     public static void main(final String[] args) {
-        BasicConfigurator.configure();
         
         final Backup backup = new Backup(
-        	new File("F:/Mike/catalog1/03_raw/01_working/2020"), 
-        	new File("Y:/catalog1/03_raw/01_working/2020"),
+        	new File("F:/Mike/catalog1/03_raw/01_working/2021"),
+        	new File("Y:/catalog1/03_raw/01_working/2021"),
             HashType.SHA256,
             false);
         
