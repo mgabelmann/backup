@@ -4,23 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
-import mgabelmann.junit.AbstractFileSystemTest;
 import mgabelmann.photo.workflow.HashType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.*;
 
 
-public class BackupTest extends AbstractFileSystemTest {
+public class BackupTest {
     private static final Logger LOG = LogManager.getLogger(ArchiveTest.class);
-    
+
+    /*
     private static URI srcURI;
     
     private File sourceDir;
     
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
-
         srcURI = new URI(BackupTest.class.getResource("BackupTest.class").toString());
     }
 
@@ -65,5 +64,6 @@ public class BackupTest extends AbstractFileSystemTest {
         Assertions.assertTrue(f20100202.exists(), "directory not found " + f20100202.getAbsolutePath());
         Assertions.assertEquals(1, f20100202.listFiles().length);
     }
+     */
 
 }

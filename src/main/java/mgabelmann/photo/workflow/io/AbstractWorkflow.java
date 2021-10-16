@@ -62,7 +62,7 @@ public abstract class AbstractWorkflow {
     
     /**
      * Ensure we can process the work to do
-     * @throws IOException
+     * @throws IOException error
      */
     protected void sanityCheck() throws IOException {
        if (! dirLocal.exists()) {
@@ -73,4 +73,5 @@ public abstract class AbstractWorkflow {
            throw new IOException(dirRemote.getAbsolutePath() + " does not exist");
        }
     }
+
 }

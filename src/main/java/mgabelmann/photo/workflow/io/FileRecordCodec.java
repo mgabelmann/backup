@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
@@ -88,7 +87,7 @@ public final class FileRecordCodec {
         if (LOG.isDebugEnabled()) { LOG.debug("creating file=" + f.getAbsolutePath()); }
         
         for (FileRecord record : records) {
-            writeFileRecord(dos, record);
+            FileRecordCodec.writeFileRecord(dos, record);
         }
         
         dos.close();
@@ -101,7 +100,7 @@ public final class FileRecordCodec {
      * @throws IOException error processing file
      */
     public static boolean verifyFileRecord(final FileRecord record) throws IOException {
-        return verifyFileChecksum(new File(record.getPath()), record.getType(), record.getSum());
+        return FileRecordCodec.verifyFileChecksum(new File(record.getPath()), record.getType(), record.getSum());
     }
     
     /**
@@ -113,7 +112,7 @@ public final class FileRecordCodec {
      * @throws IOException error calculating checksum
      */
     public static boolean verifyFileChecksum(final File file, final HashType type, final String checksum) throws IOException {
-        final String newChecksum = calculateChecksum(file, type);
+        final String newChecksum = FileRecordCodec.calculateChecksum(file, type);
         return newChecksum.equals(checksum);
     }
     
@@ -171,8 +170,6 @@ public final class FileRecordCodec {
             LOG.warn("invalid record (" + data + "). skipping");
             throw new ParseException(data, 0);
         }
-        
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
         return new FileRecord(
             fields[0],
@@ -189,12 +186,11 @@ public final class FileRecordCodec {
      * @throws IOException error writing record to stream
      */
     private static void writeFileRecord(final DataOutputStream dos, final FileRecord record) throws IOException {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        
         final StringBuilder sb = new StringBuilder();
+
         sb.append(record.getPath());
         sb.append(SEPARATOR);
-        sb.append(dateFormat.format(record.getDate()));
+        sb.append(record.getDate());
         sb.append(SEPARATOR);
         sb.append(record.getSize());
         sb.append(SEPARATOR);

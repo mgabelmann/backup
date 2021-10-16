@@ -71,7 +71,7 @@ public final class Backup extends AbstractWorkflow {
     @Override
     public void process() throws IOException, InterruptedException {
         //simple sanity check
-        sanityCheck();
+        this.sanityCheck();
         
         if (LOG.isInfoEnabled()) {
             LOG.info("backup - starting");
@@ -82,7 +82,7 @@ public final class Backup extends AbstractWorkflow {
 //        DirectoryInfo info = DirectoryInfoCodec.calculateInfo(dirLocal);
 //        LOG.info(info.toString());
         
-        backupDirectory(dirLocal, dirRemote);
+        this.backupDirectory(dirLocal, dirRemote);
         
         service.shutdown();
         

@@ -4,20 +4,21 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
-import mgabelmann.junit.AbstractFileSystemTest;
 import mgabelmann.photo.workflow.HashType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.*;
 
 
-public final class ArchiveTest extends AbstractFileSystemTest {
+public final class ArchiveTest {
     private static final Logger LOG = LogManager.getLogger(ArchiveTest.class);
-    
+
+    /*
     private static URI srcURI;
     
     private File sourceDir;
-    
+
+
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
         srcURI = new URI(ArchiveTest.class.getResource("ArchiveTest.class").toString());
@@ -68,4 +69,6 @@ public final class ArchiveTest extends AbstractFileSystemTest {
         Archive archive = new Archive(sourceDir, tstDir, HashType.SHA256, true);
         archive.validate();
     }
+
+     */
 }
