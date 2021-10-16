@@ -1,6 +1,8 @@
 package mgabelmann.photo.workflow.io;
 
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Objects;
 
 import mgabelmann.photo.workflow.HashType;
 
@@ -23,13 +25,14 @@ public final class FileRecord implements Comparable<FileRecord> {
     private final transient long size;
     
     /** Date encoded. */
-    private final transient Date date;
+    private final transient LocalDateTime date;
     
     /** Checksum type. */
     private final transient HashType type;
 
+
     /**
-     * 
+     * Constructor.
      * @param path
      * @param sum
      * @param size
@@ -40,10 +43,13 @@ public final class FileRecord implements Comparable<FileRecord> {
         final String path, 
         final String sum, 
         final long size, 
-        final Date date, 
+        final LocalDateTime date,
         final HashType type) {
-        
-        super();
+
+        if (path == null || sum == null || date == null || type == null) {
+            throw new IllegalArgumentException("values required");
+        }
+
         this.path = path;
         this.sum = sum;
         this.size = size;
@@ -75,7 +81,7 @@ public final class FileRecord implements Comparable<FileRecord> {
     /**
      * @return the date
      */
-    public Date getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 
@@ -86,80 +92,35 @@ public final class FileRecord implements Comparable<FileRecord> {
         return type;
     }
 
-    /**
-     * @see java.lang.Object#toString()
-     */
     @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("FileRecord [path=");
-        builder.append(path);
-        builder.append(", sum=");
-        builder.append(sum);
-        builder.append(", size=");
-        builder.append(size);
-        builder.append(", date=");
-        builder.append(date);
-        builder.append(", type=");
-        builder.append(type);
-        builder.append("]");
-        return builder.toString();
-    }
-
-    /**
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((date == null) ? 0 : date.hashCode());
-        result = prime * result + ((path == null) ? 0 : path.hashCode());
-        result = prime * result + (int) (size ^ (size >>> 32));
-        result = prime * result + ((sum == null) ? 0 : sum.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
-        return result;
-    }
-
-    /**
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        FileRecord other = (FileRecord) obj;
-        if (date == null) {
-            if (other.date != null)
-                return false;
-        } else if (!date.equals(other.date))
-            return false;
-        if (path == null) {
-            if (other.path != null)
-                return false;
-        } else if (!path.equals(other.path))
-            return false;
-        if (size != other.size)
-            return false;
-        if (sum == null) {
-            if (other.sum != null)
-                return false;
-        } else if (!sum.equals(other.sum))
-            return false;
-        if (type != other.type)
-            return false;
-        return true;
-    }
-    
-    /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    
     public int compareTo(final FileRecord arg0) {
         return this.path.compareTo(arg0.getPath());
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("FileRecord{");
+        sb.append("path='").append(path).append('\'');
+        sb.append(", sum='").append(sum).append('\'');
+        sb.append(", size=").append(size);
+        sb.append(", date=").append(date);
+        sb.append(", type=").append(type);
+        sb.append('}');
+
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FileRecord that = (FileRecord) o;
+        return size == that.size && path.equals(that.path) && sum.equals(that.sum) && date.equals(that.date) && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path, sum, size, date, type);
+    }
+
 }

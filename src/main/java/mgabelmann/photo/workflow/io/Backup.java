@@ -14,9 +14,9 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Simply copies the local directory structure to a remote directory structure without modifying it.
- * A manifest file is created with information about each file. A checksum is also provided for 
- * verifying the backup in the future.
+ * Simply copies the local directory structure to a remote directory structure without modifying it. A manifest
+ * file is created with information about each file. A checksum is also provided for verifying the backup in
+ * the future.
  * 
  * Recovering a backup is easy to do as long as the local folder structure still exists.
  * 
@@ -27,8 +27,7 @@ public final class Backup extends AbstractWorkflow {
     private static final Logger LOG = LogManager.getLogger(Backup.class);
     
     /** 
-     * Service that ensures that the file checksums are threaded for 
-     * optimum performance. 
+     * Service that ensures that the file checksums are threaded for optimum performance.
      */
     private final ExecutorService service;
     
@@ -40,7 +39,7 @@ public final class Backup extends AbstractWorkflow {
         
         final Backup backup = new Backup(
         	new File("F:/Mike/catalog1/03_raw/01_working/2021"),
-        	new File("Y:/catalog1/03_raw/01_working/2021"),
+        	new File("Z:/catalog1/03_raw/01_working/2021"),
             HashType.SHA256,
             false);
         
@@ -69,7 +68,7 @@ public final class Backup extends AbstractWorkflow {
         service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 5);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void process() throws IOException, InterruptedException {
         //simple sanity check
         sanityCheck();
@@ -99,13 +98,13 @@ public final class Backup extends AbstractWorkflow {
             LOG.info("backup - finished\n"); 
         }
     }
-    
-    /** {@inheritDoc} */
+
+    @Override
     public void restore() throws IOException {
         throw new WorkflowRuntimeException("not implemented yet");
     }
-    
-    /** {@inheritDoc} */
+
+    @Override
     public void validate() throws IOException {
         throw new WorkflowRuntimeException("not implemented yet");
     }

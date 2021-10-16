@@ -3,6 +3,9 @@ package mgabelmann.photo.workflow.io;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -174,9 +177,11 @@ public final class Archive extends AbstractWorkflow {
         final String fileChecksum = FileRecordCodec.calculateChecksum(file, type);
         
         final File newFile = new File(dirR, fileChecksum + extension);
-       
+
+        final LocalDateTime lastModified = Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
         //create a file record and store it
-        final FileRecord record = new FileRecord(file.getAbsolutePath(), fileChecksum, file.length(), new Date(file.lastModified()), type);
+        final FileRecord record = new FileRecord(file.getAbsolutePath(), fileChecksum, file.length(), lastModified, type);
         records.add(record);
         
         if (newFile.exists()) {

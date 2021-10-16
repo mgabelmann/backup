@@ -44,12 +44,10 @@ public final class PhotoManifestGUI
     //-------------------------- GUI COMPONENTS -------------------------------
     private JLabel labelFile;
     private JProgressBar progressBar;
-    
     private JComboBox<HashType> cmbType;
     private JButton btnFile;
     private JButton btnProcess;
     private JButton btnVerify;
-    
     private JButton btnReadFile;
     private JButton btnWriteFile;
     
@@ -99,13 +97,6 @@ public final class PhotoManifestGUI
         //add actions
         btnFile.setActionCommand("file");
         btnFile.addActionListener(this);
-        
-        
-//        btnFile.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                selectFileActionPerformed();
-//            }
-//        });
         
         btnProcess.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -218,9 +209,9 @@ public final class PhotoManifestGUI
     }
 
     /**
+     *
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
-    
     public void actionPerformed(ActionEvent arg0) {
         if ("file".equals(arg0.getActionCommand())) {
             selectFileActionPerformed();
@@ -228,11 +219,10 @@ public final class PhotoManifestGUI
     }
 
     /**
+     *
      * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
      */
-   
     public void propertyChange(PropertyChangeEvent arg0) {
-        // TODO Auto-generated method stub
         if ("progress".equals(arg0.getPropertyName())) {
             progressBar.setValue((Integer) arg0.getNewValue());
         }

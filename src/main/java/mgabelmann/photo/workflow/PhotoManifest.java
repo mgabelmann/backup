@@ -3,6 +3,7 @@ package mgabelmann.photo.workflow;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -23,7 +24,6 @@ public final class PhotoManifest {
     private enum Mode {
         GUI, //Graphical Mode
         CLI  //Command line Mode
-
     }
     
     /** Logger. */
@@ -43,9 +43,12 @@ public final class PhotoManifest {
     
     /**  */
     private transient PhotoManifestGUI pmg = null;
-    
+
+
     /**
      * Constructor.
+     * @param mode
+     * @param rootdir
      */
     public PhotoManifest(final Mode mode, final File rootdir) {
         this.mode = mode;
@@ -68,7 +71,7 @@ public final class PhotoManifest {
         try {
             final String checksum = FileRecordCodec.calculateChecksum(f, HashType.SHA256);
             
-            final FileRecord record = new FileRecord(f.getAbsolutePath(), checksum, f.length(), new Date(), HashType.SHA256);
+            final FileRecord record = new FileRecord(f.getAbsolutePath(), checksum, f.length(), LocalDateTime.now(), HashType.SHA256);
             records.add(record);
             
             if (LOG.isDebugEnabled()) { LOG.debug(record); }
@@ -159,18 +162,36 @@ public final class PhotoManifest {
      * Entry point for application.
      * @param args arguments
      */
-    public static void main(final String[] args) {
+    public final static void main(final String[] args) {
+        boolean error = false;
         Mode mode = Mode.GUI;
         File directory = null;
         
         if (args.length >= 1) {
-            mode = Mode.valueOf(args[0]);
+            try {
+                mode = Mode.valueOf(args[0]);
+
+            } catch (IllegalArgumentException iae) {
+                LOG.fatal("invalid Mode={}, choose from {}", args[0], Mode.values());
+                error = true;
+            }
         }
         
         if (args.length == 2) {
             directory = new File(args[1]);
+
+            if (!directory.exists()) {
+                LOG.fatal("{} does not exist", args[1]);
+                error = true;
+
+            } else if (!directory.isDirectory()) {
+                LOG.fatal("{} is not a directory", args[1]);
+                error = true;
+            }
         }
-        
+
+        if (error) System.exit(1);
+
         //create application
         new PhotoManifest(mode, directory);
     }

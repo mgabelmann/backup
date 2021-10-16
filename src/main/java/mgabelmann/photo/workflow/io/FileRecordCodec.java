@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 import mgabelmann.photo.workflow.HashType;
@@ -174,10 +175,10 @@ public final class FileRecordCodec {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
         return new FileRecord(
-            fields[0], 
+            fields[0],
             fields[4], 
-            Long.parseLong(fields[2]), 
-            dateFormat.parse(fields[1]), 
+            Long.parseLong(fields[2]),
+            LocalDateTime.parse(fields[1]),
             HashType.valueOf(fields[3]));
     }
     

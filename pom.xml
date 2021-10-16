@@ -44,6 +44,7 @@
             <version>${log4j.version}</version>
             <scope>runtime</scope>
         </dependency>
+
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
