@@ -26,18 +26,16 @@ public final class Backup extends AbstractWorkflow {
     /** Logger. */
     private static final Logger LOG = LogManager.getLogger(Backup.class);
     
-    /** 
-     * Service that ensures that the file checksums are threaded for optimum performance.
-     */
+    /** Service that ensures that the file checksums are threaded for optimum performance. */
     private final ExecutorService service;
-    
+
+
     /**
      * Main method.
      * @param args arguments
      */
     public static void main(final String[] args) {
-        
-        final Backup backup = new Backup(
+        Backup backup = new Backup(
         	new File("F:/Mike/catalog1/03_raw/01_working/2021"),
         	new File("Z:/catalog1/03_raw/01_working/2021"),
             HashType.SHA256,
@@ -65,37 +63,23 @@ public final class Backup extends AbstractWorkflow {
     public Backup(final File dirLocal, final File dirRemote, final HashType type, final boolean verify) {
         super(dirLocal, dirRemote, type, verify);
         
-        service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 5);
+        this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 5);
     }
 
     @Override
     public void process() throws IOException, InterruptedException {
-        //simple sanity check
-        this.sanityCheck();
-        
         if (LOG.isInfoEnabled()) {
             LOG.info("backup - starting");
         }
         
-        //determine amount of work
-//        LOG.info("Determining workload");
-//        DirectoryInfo info = DirectoryInfoCodec.calculateInfo(dirLocal);
-//        LOG.info(info.toString());
-        
         this.backupDirectory(dirLocal, dirRemote);
         
         service.shutdown();
-        
-        try {
-            boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
 
-            if (timeout) {
-                LOG.warn("service timed out");
-            }
+        boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
 
-        } catch (InterruptedException ie) {
-            LOG.warn(ie.getMessage());
-            throw ie;
+        if (timeout) {
+            LOG.warn("service timed out");
         }
         
         if (LOG.isInfoEnabled()) { 
@@ -144,7 +128,7 @@ public final class Backup extends AbstractWorkflow {
                         }
                     }
                     
-                    backupDirectory(f, dirR);
+                    this.backupDirectory(f, dirR);
                     
                 } else {
                     fileR = new File(remoteDir, f.getName());

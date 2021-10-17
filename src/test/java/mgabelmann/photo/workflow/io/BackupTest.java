@@ -1,11 +1,10 @@
 package mgabelmann.photo.workflow.io;
 
 import mgabelmann.photo.workflow.HashType;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -13,8 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
 
@@ -23,8 +22,6 @@ import java.util.Random;
  * @author mgabe
  */
 public class BackupTest {
-    private static final Logger LOG = LogManager.getLogger(ArchiveTest.class);
-
     @TempDir
     private Path tempDir;
 
@@ -35,44 +32,74 @@ public class BackupTest {
     private Path file2;
     private Path file3;
 
+    @BeforeAll
+    static void beforeAll() {
+        //force logging level so more statements will run
+        Configurator.setLevel(LogManager.getLogger(Backup.class).getName(), Level.TRACE);
+    }
+
+    @Test
+    @DisplayName("source directory is null")
+    void test1_process() {
+        Path dstDir = tempDir;
+        HashType type = HashType.SHA256;
+        boolean verify = false;
+
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(null, dstDir.toFile(), type, verify));
+        Assertions.assertEquals("dirLocal cannot be null", iae.getMessage());
+    }
 
     @Test
     @DisplayName("source directory does not exist")
-    void test1_process() {
-        Path srcDir = Paths.get(tempDir.toString() + File.separator + "srcDir");
-        Path dstDir = Paths.get(tempDir.toString() + File.separator + "dstDir");
+    void test2_process() {
+        Path srcDir = tempDir.resolve("srcDir1");
+        Path dstDir = tempDir;
+        HashType type = HashType.SHA256;
+        boolean verify = false;
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
-        IOException ie = Assertions.assertThrows(IOException.class, b::process);
-
-        Assertions.assertEquals(srcDir + " does not exist", ie.getMessage());
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        Assertions.assertEquals("dirLocal does not exist", iae.getMessage());
     }
 
     @Test
-    @DisplayName("destination directory does not exist")
-    void test3_process() throws Exception {
-        Path srcDir = this.createDirectory(tempDir, "srcDir");
-        Path dstDir = Paths.get(tempDir.toString() + File.separator + "dstDir");
+    @DisplayName("destination directory is null")
+    void test3_process() {
+        Path srcDir = tempDir;
+        HashType type = HashType.SHA256;
+        boolean verify = false;
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
-        IOException ie = Assertions.assertThrows(IOException.class, b::process);
-
-        Assertions.assertEquals(dstDir + " does not exist", ie.getMessage());
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), null, type, verify));
+        Assertions.assertEquals("dirRemote cannot be null", iae.getMessage());
     }
 
     @Test
-    @DisplayName("destination directory exists")
-    void test4_process() throws Exception {
-        Path srcDir = this.createDirectory(tempDir, "srcDir");
-        Path dstDir = this.createDirectory(tempDir, "dstDir");
+    @DisplayName("source directory does not exist")
+    void test4_process() {
+        Path srcDir = tempDir;
+        Path dstDir = tempDir.resolve("dstDir1");
+        HashType type = HashType.SHA256;
+        boolean verify = false;
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
-        b.process();
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        Assertions.assertEquals("dirRemote does not exist", iae.getMessage());
     }
+
+    @Test
+    @DisplayName("type cannot be null")
+    void test5_process() {
+        Path srcDir = tempDir;
+        Path dstDir = tempDir;
+        HashType type = null;
+        boolean verify = false;
+
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        Assertions.assertEquals("type cannot be null", iae.getMessage());
+    }
+
 
     @Test
     @DisplayName("create destination directory")
-    void test5_process() throws Exception {
+    void test10_process() throws Exception {
         Path srcDir = this.createDirectory(tempDir, "srcDir");
         this.createDirectory(srcDir, "srcDir2");
 
@@ -89,7 +116,7 @@ public class BackupTest {
 
     @Test
     @DisplayName("create new destination file")
-    void test6_process() throws Exception {
+    void test11_process() throws Exception {
         Path srcDir = this.createDirectory(tempDir, "srcDir");
         Path dstDir = this.createDirectory(tempDir, "dstDir");
 
@@ -101,61 +128,80 @@ public class BackupTest {
         Path dstFile1 = Paths.get(dstDir + File.separator + "srcFile1.jpg");
 
         Assertions.assertTrue(Files.exists(dstFile1));
-        Assertions.assertFalse(Files.isDirectory(dstFile1));
-    }
-
-    /*
-    private static URI srcURI;
-    
-    private File sourceDir;
-    
-    @BeforeAll
-    public static void setUpBeforeClass() throws Exception {
-        srcURI = new URI(BackupTest.class.getResource("BackupTest.class").toString());
-    }
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        super.setUp();
-        
-        sourceDir = new File(new File(srcURI).getParentFile(), "01_src");
-        Assertions.assertTrue(sourceDir.exists(), "sourceDir does not exist");
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        sourceDir = null;
     }
 
     @Test
-    public void process() throws IOException, InterruptedException {
-        Backup backup = new Backup(sourceDir, tstDir, HashType.SHA256, true);
-        backup.process();
-        
-        File[] files = tstDir.listFiles();
+    @DisplayName("destination file exists, different length")
+    void test12_process() throws Exception {
+        Path srcDir = this.createDirectory(tempDir, "srcDir");
+        Path dstDir = this.createDirectory(tempDir, "dstDir");
 
-        Assertions.assertEquals(2, files.length);
-        
-        //manifest file is not written for this test, probably should be
-        //assertTrue("file not found " + FileRecordCodec.FILENAME, new File(tstDir, FileRecordCodec.FILENAME).exists());
-        
-        File f2009 = new File(tstDir, "2009");
-        Assertions.assertTrue(f2009.exists(), "directory not found " + f2009.getAbsolutePath());
-        Assertions.assertEquals(3, f2009.listFiles().length);
-        
-        File f20090215 = new File(f2009, "2009-02-15");
-        Assertions.assertTrue(f20090215.exists(), "directory not found " + f20090215.getAbsolutePath());
-        Assertions.assertEquals(12, f20090215.listFiles().length);
-        
-        File f2010 = new File(tstDir, "2010");
-        Assertions.assertTrue(f2010.exists(), "directory not found " + f2010.getAbsolutePath());
-        Assertions.assertEquals(1, f2010.listFiles().length);
-        
-        File f20100202 = new File(f2010, "2010-02-02");
-        Assertions.assertTrue(f20100202.exists(), "directory not found " + f20100202.getAbsolutePath());
-        Assertions.assertEquals(1, f20100202.listFiles().length);
+        Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
+        Path dstFile1 = this.createFileWithData(dstDir, "srcFile1.jpg", "old data");
+
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        b.process();
+
+        Assertions.assertEquals(12, dstFile1.toFile().length());
     }
-     */
+
+    @Test
+    @DisplayName("destination file exists, same length, different modification date/time")
+    void test13_process() throws Exception {
+        Path srcDir = this.createDirectory(tempDir, "srcDir");
+        Path dstDir = this.createDirectory(tempDir, "dstDir");
+
+        Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
+        Path dstFile1 = this.createFileWithData(dstDir, "srcFile1.jpg", "updated data");
+        dstFile1.toFile().setLastModified(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli());
+
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        b.process();
+
+        Assertions.assertEquals(srcFile1.toFile().lastModified(), dstFile1.toFile().lastModified());
+    }
+
+    @Test
+    @DisplayName("destination file exists and is identical")
+    void test14_process() throws Exception {
+        Path srcDir = this.createDirectory(tempDir, "srcDir");
+        Path dstDir = this.createDirectory(tempDir, "dstDir");
+
+        Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
+        Path dstFile1 = this.createFileWithData(dstDir, "srcFile1.jpg", "updated data");
+        dstFile1.toFile().setLastModified(srcFile1.toFile().lastModified());
+
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        b.process();
+
+        Assertions.assertEquals(srcFile1.toFile().lastModified(), dstFile1.toFile().lastModified());
+    }
+
+    @Test
+    @DisplayName("can't create destination directory")
+    void test15_process() throws Exception {
+        //Windows directories are always readable, so we skip the running of this test
+        Assumptions.assumeFalse(System.getProperty("os.name").startsWith("Windows"));
+
+        Path srcDir = this.createDirectory(tempDir, "srcDir");
+        Path dstDir = this.createDirectory(tempDir, "dstDir");
+        boolean success = dstDir.toFile().setWritable(false);
+
+        if (!success) {
+            Assertions.fail("could not set to read only");
+        }
+
+        Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
+
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+
+        IOException ie = Assertions.assertThrows(IOException.class, b::process);
+        Assertions.assertEquals("unable to create directory " + dstDir.toAbsolutePath(), ie.getMessage());
+
+        dstDir.toFile().setWritable(true);
+    }
+
+
 
     /**
      * Create a known directory/file structure.
@@ -201,10 +247,21 @@ public class BackupTest {
      * @throws IOException error
      */
     private Path createFile(Path dir, String filename) throws IOException {
-        Path file = dir.resolve(filename);
         Random r = new Random();
-        List<String> data = Arrays.asList("" + r.nextInt(), "" + r.nextBoolean(), "" + r.nextFloat());
-        Files.write(file, data);
+        byte[] b = new byte[1024];
+        r.nextBytes(b);
+
+        return this.createFileWithData(dir, filename, new String(b));
+    }
+
+    private Path createFileWithData(Path dir, String filename, String data) throws IOException {
+        Assertions.assertTrue(Files.exists(dir));
+        Assertions.assertNotNull(filename);
+        Assertions.assertNotEquals("", filename);
+        Assertions.assertNotNull(data);
+
+        Path file = dir.resolve(filename);
+        Files.writeString(file, data);
 
         return file;
     }

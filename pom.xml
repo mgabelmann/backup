@@ -16,8 +16,8 @@
 
     <name>backup</name>
     <description>
-        Backup files if they don't exist in the destination directory or newer. Also provides some other
-        utilities for performing backups.
+        Backup files if they don't exist in the destination directory or newer. Also provides some other utilities
+        for performing backups.
     </description>
 
     <scm>

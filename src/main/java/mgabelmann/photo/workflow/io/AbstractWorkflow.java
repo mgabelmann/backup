@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import mgabelmann.photo.workflow.HashType;
+import mgabelmann.photo.workflow.exception.WorkflowException;
 
 /**
  * 
@@ -35,7 +36,31 @@ public abstract class AbstractWorkflow {
         final File dirRemote, 
         final HashType type, 
         final boolean verify) {
-        
+
+        if (dirLocal == null) {
+            throw new IllegalArgumentException("dirLocal cannot be null");
+
+        } else if (!dirLocal.exists()) {
+            throw new IllegalArgumentException("dirLocal does not exist");
+
+        } else if (!dirLocal.canRead()) {
+            throw new IllegalArgumentException("dirLocal is not readable");
+        }
+
+        if (dirRemote == null) {
+            throw new IllegalArgumentException("dirRemote cannot be null");
+
+        } else if (!dirRemote.exists()) {
+            throw new IllegalArgumentException("dirRemote does not exist");
+
+        } else if (!dirRemote.canWrite()) {
+            throw new IllegalArgumentException("dirRemote is not writable");
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null");
+        }
+
         this.dirLocal = dirLocal;
         this.dirRemote = dirRemote;
         this.type = type;
@@ -59,19 +84,5 @@ public abstract class AbstractWorkflow {
      * @throws Exception error verifying
      */
     public abstract void validate() throws Exception;
-    
-    /**
-     * Ensure we can process the work to do
-     * @throws IOException error
-     */
-    protected void sanityCheck() throws IOException {
-       if (! dirLocal.exists()) {
-           throw new IOException(dirLocal.getAbsolutePath() + " does not exist");
-       }
-       
-       if (! dirRemote.exists()) {
-           throw new IOException(dirRemote.getAbsolutePath() + " does not exist");
-       }
-    }
 
 }
