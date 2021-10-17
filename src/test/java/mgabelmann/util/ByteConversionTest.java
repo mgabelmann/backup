@@ -4,17 +4,6 @@ import org.junit.jupiter.api.*;
 
 
 public class ByteConversionTest {
-    
-    
-    @BeforeEach
-    public void setUp() throws Exception {
-        
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        
-    }
 
     @Test
     public void testCalculateBytes() {

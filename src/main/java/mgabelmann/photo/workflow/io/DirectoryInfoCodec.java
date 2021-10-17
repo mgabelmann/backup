@@ -37,16 +37,20 @@ public final class DirectoryInfoCodec {
      * @param info information object
      */
     private static void processDirectory(final File dir, final DirectoryInfo info) {
-        for (File f : dir.listFiles()) {
-            if (f.isDirectory()) {
-                //add directory information and process it
-                info.addDirectory();
-                processDirectory(f, info);
-                
-            } else {
-                //add File information
-                info.addFile();
-                info.addSize(f.length());
+        File[] files = dir.listFiles();
+
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    //add directory information and process it
+                    info.addDirectory();
+                    processDirectory(f, info);
+
+                } else {
+                    //add File information
+                    info.addFile();
+                    info.addSize(f.length());
+                }
             }
         }
     }

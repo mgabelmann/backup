@@ -131,9 +131,6 @@ public final class FileRecordCodec {
                 case SHA256 -> DigestUtils.sha256Hex(fis);
                 case SHA384 -> DigestUtils.sha384Hex(fis);
                 case SHA512 -> DigestUtils.sha512Hex(fis);
-                default ->
-                        //should never hit this code, but you never know
-                        throw new IllegalArgumentException("invalid hash function " + type);
             };
         }
     }
@@ -150,9 +147,6 @@ public final class FileRecordCodec {
             case SHA256 -> DigestUtils.sha256Hex(s);
             case SHA384 -> DigestUtils.sha384Hex(s);
             case SHA512 -> DigestUtils.sha512Hex(s);
-            default ->
-                    //should never hit this code, but you never know
-                    throw new IllegalArgumentException("invalid hash function " + type);
         };
 
     }

@@ -87,8 +87,12 @@ public final class Backup extends AbstractWorkflow {
         service.shutdown();
         
         try {
-            service.awaitTermination(15, TimeUnit.SECONDS);
-            
+            boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
+
+            if (timeout) {
+                LOG.warn("service timed out");
+            }
+
         } catch (InterruptedException ie) {
             LOG.warn(ie.getMessage());
             throw ie;
@@ -100,12 +104,12 @@ public final class Backup extends AbstractWorkflow {
     }
 
     @Override
-    public void restore() throws IOException {
+    public void restore() {
         throw new WorkflowRuntimeException("not implemented yet");
     }
 
     @Override
-    public void validate() throws IOException {
+    public void validate() {
         throw new WorkflowRuntimeException("not implemented yet");
     }
     
@@ -123,7 +127,7 @@ public final class Backup extends AbstractWorkflow {
         
         final File[] files = localDir.listFiles();
         
-        if (files.length > 0) {
+        if (files != null && files.length > 0) {
             File dirR;
             File fileR;
             
@@ -134,6 +138,7 @@ public final class Backup extends AbstractWorkflow {
                     if (! dirR.exists()) {
                         if(! dirR.mkdir()) {
                             throw new IOException("unable to create directory " + dirR.getAbsolutePath());
+
                         } else {
                             LOG.info("DIR: " + dirR.getAbsolutePath() + " does not exist - created");
                         }
@@ -143,7 +148,8 @@ public final class Backup extends AbstractWorkflow {
                     
                 } else {
                     fileR = new File(remoteDir, f.getName());
-                    backupFile(f, fileR);
+
+                    this.backupFile(f, fileR);
                 }
             }
             
