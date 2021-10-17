@@ -96,6 +96,31 @@ public class BackupTest {
         Assertions.assertEquals("type cannot be null", iae.getMessage());
     }
 
+    //TODO: srcDir not readable
+
+    @Test
+    @DisplayName("destination directory is not writable")
+    void test7_process() throws Exception {
+        //Windows directories are always readable, so we skip the running of this test
+        Assumptions.assumeFalse(System.getProperty("os.name").startsWith("Windows"));
+
+        Path srcDir = this.createDirectory(tempDir, "srcDir");
+        Path dstDir = this.createDirectory(tempDir, "dstDir");
+        HashType type = HashType.SHA256;
+        boolean verify = false;
+
+        boolean success = dstDir.toFile().setWritable(false);
+
+        if (!success) {
+            Assertions.fail("could not set to read only");
+        }
+
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        Assertions.assertEquals("dirRemote is not writable", iae.getMessage());
+
+        dstDir.toFile().setWritable(true);
+    }
+
 
     @Test
     @DisplayName("create destination directory")
@@ -177,6 +202,7 @@ public class BackupTest {
         Assertions.assertEquals(srcFile1.toFile().lastModified(), dstFile1.toFile().lastModified());
     }
 
+    @Disabled("requires refactoring")
     @Test
     @DisplayName("can't create destination directory")
     void test15_process() throws Exception {
