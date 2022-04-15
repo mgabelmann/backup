@@ -36,8 +36,8 @@ public final class Backup extends AbstractWorkflow {
      */
     public static void main(final String[] args) {
         Backup backup = new Backup(
-        	new File("F:/Mike/catalog1/03_raw/01_working/2021"),
-        	new File("Z:/catalog1/03_raw/01_working/2021"),
+        	new File("F:/Mike/catalog1/03_raw/01_working/2022"),
+        	new File("Y:/catalog1/03_raw/01_working/2022"),
             HashType.SHA256,
             false);
         
