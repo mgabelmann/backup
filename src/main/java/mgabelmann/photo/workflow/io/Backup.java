@@ -2,6 +2,8 @@ package mgabelmann.photo.workflow.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +38,8 @@ public final class Backup extends AbstractWorkflow {
      */
     public static void main(final String[] args) {
         Backup backup = new Backup(
-        	new File("F:/Mike/catalog1/03_raw/01_working/2022"),
-        	new File("Y:/catalog1/03_raw/01_working/2022"),
-            HashType.SHA256,
-            false);
+        	new File("P:/Mike/catalog1/03_raw/01_working/2024"),
+        	new File("Z:/catalog1/03_raw/01_working/2024"));
         
         try {
             backup.process();
@@ -52,7 +52,16 @@ public final class Backup extends AbstractWorkflow {
         	Thread.currentThread().interrupt();
         }
     }
-    
+
+    /**
+     * Constructor.
+     * @param workDir dirLocal local directory (original files)
+     * @param dirRemote dirRemote remote directory (backup files)
+     */
+    public Backup(final File workDir, final File dirRemote) {
+        this(workDir, dirRemote, HashType.SHA256, false);
+    }
+
     /**
      * Constructor.
      * @param dirLocal local directory (original files)
@@ -150,8 +159,23 @@ public final class Backup extends AbstractWorkflow {
      */
     private void backupFile(final File localFile, final File remoteFile) throws IOException {
         boolean copied = true;
-        
+
+        //FIXME: switch to do this instead
+        //BasicFileAttributes attributesLocal = Files.readAttributes(localFile.toPath(), BasicFileAttributes.class);
+        //BasicFileAttributes attributesRemote = Files.readAttributes(remoteFile.toPath(), BasicFileAttributes.class);
+
+
         if (remoteFile.exists()) {
+            /*if (attributesLocal.size() != attributesRemote.size()) {
+
+
+            } else if (attributesLocal.lastModifiedTime() != attributesRemote.lastModifiedTime()) {
+
+
+            } else {
+
+            }*/
+
             if (localFile.length() != remoteFile.length()) {
                 //different file lengths
                 LOG.info("FILE: " + localFile.getAbsolutePath() + " replacing - different length");
