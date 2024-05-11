@@ -83,7 +83,7 @@ public final class Archive extends AbstractWorkflow {
    
     /** {@inheritDoc} */
     public void process() throws WorkflowException {
-        archiveDirectory(dirLocal);
+        this.archiveDirectory(dirLocal);
 
         try {
             FileRecordCodec.writeFile(records, dirRemote);
@@ -92,7 +92,9 @@ public final class Archive extends AbstractWorkflow {
             throw new WorkflowException(ie);
         }
 
-        if (LOG.isDebugEnabled()) { LOG.debug("finished archiving files"); }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("finished archiving files");
+        }
     }
     
     /** {@inheritDoc} */
@@ -113,10 +115,10 @@ public final class Archive extends AbstractWorkflow {
 
                 try {
                     if (FileRecordCodec.verifyFileChecksum(remoteFile, record.getType(), record.getSum())) {
-                        LOG.info(record.getPath() + " checksum - passed");
+                        LOG.info("{} checksum - passed", record.getPath());
 
                     } else {
-                        LOG.warn(record.getPath() + " checksum - failed");
+                        LOG.warn("{} checksum - failed", record.getPath());
                     }
 
                 } catch (FileNotFoundException fnfe) {
@@ -128,7 +130,9 @@ public final class Archive extends AbstractWorkflow {
             throw new WorkflowException(ioe);
         }
         
-        if (LOG.isDebugEnabled()) { LOG.debug("finished verifying files"); }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("finished verifying files");
+        }
     }
     
     /** {@inheritDoc} */
@@ -161,7 +165,7 @@ public final class Archive extends AbstractWorkflow {
             }
             
         } else {
-            LOG.debug("DIR: " + dirProcess.getAbsolutePath() + " is empty - skipping");
+            LOG.debug("DIR: {} is empty - skipping", dirProcess.getAbsolutePath());
         }
     }
     
@@ -178,7 +182,7 @@ public final class Archive extends AbstractWorkflow {
                 throw new WorkflowException("unable to create directory " + dirR.getAbsolutePath());
             }
             
-            LOG.info("DIR: " + dirR.getAbsolutePath() + " doesn't exist - created");
+            LOG.info("DIR: {} doesn't exist - created", dirR.getAbsolutePath());
         }
 
         try {
@@ -197,12 +201,12 @@ public final class Archive extends AbstractWorkflow {
 
             if (newFile.exists()) {
                 //chances of a collision are next to impossible (2^128 at worst, 2^64 at best) so this MUST be the same file
-                LOG.debug("FILE: " + file.getAbsolutePath() + " is identical - skipping");
+                LOG.debug("FILE: {} is identical - skipping", file.getAbsolutePath());
 
             } else {
                 //copy file
                 //NOTE: if a file has changed since it was last archived it compute a new hash and be archived again
-                LOG.info("FILE: " + file.getAbsolutePath() + " is new - copying");
+                LOG.info("FILE: {} is new - copying", file.getAbsolutePath());
                 FileUtil.copyFile(file, newFile, true);
             }
 

@@ -51,7 +51,9 @@ public final class FileRecordCodec {
         
         final BufferedReader br = new BufferedReader(new FileReader(manifest));
         
-        if (LOG.isDebugEnabled()) { LOG.debug("opening file=" + manifest.getAbsolutePath()); }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("opening file={}", manifest.getAbsolutePath());
+        }
         
         String data;
         while((data = br.readLine()) != null) {
@@ -84,7 +86,9 @@ public final class FileRecordCodec {
         
         final DataOutputStream dos = new DataOutputStream(new FileOutputStream(f));
         
-        if (LOG.isDebugEnabled()) { LOG.debug("creating file=" + f.getAbsolutePath()); }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("creating file={}", f.getAbsolutePath());
+        }
         
         for (FileRecord record : records) {
             FileRecordCodec.writeFileRecord(dos, record);

@@ -104,4 +104,14 @@ public abstract class AbstractWorkflow {
      */
     public abstract void validate() throws WorkflowException;
 
+    @Override
+    public String toString() {
+        return "AbstractWorkflow{" +
+                "dirLocal=" + dirLocal +
+                ", dirRemote=" + dirRemote +
+                ", type=" + type +
+                ", verify=" + verify +
+                '}';
+    }
+
 }

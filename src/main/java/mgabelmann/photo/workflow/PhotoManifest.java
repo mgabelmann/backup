@@ -76,13 +76,8 @@ public final class PhotoManifest {
             
             if (LOG.isDebugEnabled()) { LOG.debug(record); }
             
-        } catch (FileNotFoundException fnfe) {
+        } catch (IOException fnfe) {
             LOG.error(fnfe);
-            //System.err.println(fnfe);
-            
-        } catch (IOException ie) {
-            LOG.error(ie);
-            //System.err.println(ie);
         }
     }
     
@@ -92,16 +87,19 @@ public final class PhotoManifest {
      */
     public void processDirectory(final File d) {
         if (LOG.isDebugEnabled()) { 
-            LOG.debug("processing directory: " + d.getAbsolutePath()); 
+            LOG.debug("processing directory: {}", d.getAbsolutePath());
         }
         
         final File[] files = d.listFiles();
-        
-        for (File file : files) {
-            if (file.isDirectory()) {
-                processDirectory(file);
-            } else {
-                processFile(file);
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    processDirectory(file);
+
+                } else {
+                    processFile(file);
+                }
             }
         }
     }

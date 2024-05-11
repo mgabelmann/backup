@@ -58,7 +58,7 @@ public final class FileUtil {
        
         //preserve last modified date (we check this)
         if (preserveLastModified && ! dest.setLastModified(source.lastModified())) {
-            LOG.warn("FILE: " + dest.getAbsolutePath() + " unable to set last modified date");
+            LOG.warn("FILE: {} unable to set last modified date", dest.getAbsolutePath());
         }
     }
     

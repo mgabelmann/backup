@@ -133,7 +133,7 @@ public final class Backup extends AbstractWorkflow {
                             throw new IOException("unable to create directory " + dirR.getAbsolutePath());
 
                         } else {
-                            LOG.info("DIR: " + dirR.getAbsolutePath() + " does not exist - created");
+                            LOG.info("DIR: {} does not exist - created", dirR.getAbsolutePath());
                         }
                     }
                     
@@ -147,7 +147,7 @@ public final class Backup extends AbstractWorkflow {
             }
             
         } else {
-            LOG.debug("DIR: " + localDir.getAbsolutePath() + " skipping - empty");
+            LOG.debug("DIR: {} skipping - empty", localDir.getAbsolutePath() );
         }
     }
     
@@ -178,25 +178,25 @@ public final class Backup extends AbstractWorkflow {
 
             if (localFile.length() != remoteFile.length()) {
                 //different file lengths
-                LOG.info("FILE: " + localFile.getAbsolutePath() + " replacing - different length");
+                LOG.info("FILE: {} replacing - different length", localFile.getAbsolutePath());
                 
                 FileUtil.copyFile(localFile, remoteFile, true);
                 
             } else if (localFile.lastModified() != remoteFile.lastModified()) {
                 //same file lengths and different timestamps
-                LOG.info("FILE: " + localFile.getAbsolutePath() + " replacing - different timestamp");
+                LOG.info("FILE: {} replacing - different timestamp", localFile.getAbsolutePath());
                 
                 FileUtil.copyFile(localFile, remoteFile, true);
                 
             } else {
                 //same file length and timestamps
-                LOG.debug("FILE: " + localFile.getAbsolutePath() + " skipping - identical");
+                LOG.debug("FILE: {} skipping - identical", localFile.getAbsolutePath());
                 copied = false;
             }
             
         } else {
             //copy file
-            LOG.info("FILE: " + localFile.getAbsolutePath() + " copying - new");
+            LOG.info("FILE: {} copying - new", localFile.getAbsolutePath());
             FileUtil.copyFile(localFile, remoteFile, true);
         } 
         

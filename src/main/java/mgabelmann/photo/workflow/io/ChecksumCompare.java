@@ -39,15 +39,13 @@ public final class ChecksumCompare implements Runnable {
         this.type = type;
     }
     
-    
-    
     public void run() {
         try {
             equal = FileUtil.verifyCopy(source, dest, type);
-            LOG.info("FILE: " + source.getAbsolutePath() + " checksum - equal");
+            LOG.info("FILE: {} checksum - equal", source.getAbsolutePath() );
             
         } catch (IOException e) {
-            LOG.warn("FILE: " + source.getAbsolutePath() + " checksum - failed");
+            LOG.warn("FILE: {} checksum - failed", source.getAbsolutePath());
         }
     }
 
