@@ -1,7 +1,6 @@
 package mgabelmann.photo.workflow.io;
 
 import java.io.File;
-import java.io.IOException;
 
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.exception.WorkflowException;
@@ -89,19 +88,19 @@ public abstract class AbstractWorkflow {
 
     /**
      * Process workflow.
-     * @throws Exception error processing
+     * @throws WorkflowException error processing
      */
     public abstract void process() throws WorkflowException;
     
     /**
      * Restore workflow.
-     * @throws Exception error restoring
+     * @throws WorkflowException error restoring
      */
     public abstract void restore() throws WorkflowException;
     
     /**
      * Verify workflow.
-     * @throws Exception error verifying
+     * @throws WorkflowException error verifying
      */
     public abstract void validate() throws WorkflowException;
 

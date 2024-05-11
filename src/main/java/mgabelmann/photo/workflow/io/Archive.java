@@ -11,7 +11,6 @@ import java.util.Collection;
 
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.exception.WorkflowException;
-import mgabelmann.photo.workflow.exception.WorkflowRuntimeException;
 import mgabelmann.util.FileUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,7 +51,7 @@ public final class Archive extends AbstractWorkflow {
     
     /**
      * Main method.
-     * @param args
+     * @param args list of arguments
      */
     public static void main(final String[] args) {
         final Archive archive = new Archive(
@@ -152,7 +151,7 @@ public final class Archive extends AbstractWorkflow {
         final String dirNameChecksum = calculateDirectoryName(dirProcess, true, type);
         final File dirR = new File(dirRemote, dirNameChecksum);
         
-        if (files.length > 0) {
+        if (files != null && files.length > 0) {
             for (File f : files) {
                 if (f.isDirectory()) {
                     archiveDirectory(f);
@@ -170,7 +169,7 @@ public final class Archive extends AbstractWorkflow {
      * Archive a file if it is new or has changed.
      * @param file file to archive
      * @param dirR archive directory where file copied to
-     * @throws IOException error archiving file
+     * @throws WorkflowException error archiving file
      */
     private void archiveFile(final File file, final File dirR) throws WorkflowException {
         //create remote directory if it doesn't exist
