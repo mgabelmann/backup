@@ -164,7 +164,7 @@ public final class FileRecordCodec {
         final String[] fields = data.split(SEPARATOR);
         
         if (fields.length != 5) {
-            LOG.warn("invalid record (" + data + "). skipping");
+            LOG.warn("invalid record ({}). skipping", data);
             throw new ParseException(data, 0);
         }
 

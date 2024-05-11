@@ -141,7 +141,9 @@ public final class PhotoManifestGUI
             pm.setRootdir(fc.getSelectedFile());
             labelFile.setText(fc.getSelectedFile().getAbsolutePath());
             
-            if (LOG.isDebugEnabled()) LOG.debug("Selected directory: " + fc.getSelectedFile().getAbsolutePath());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Selected directory: {}", fc.getSelectedFile().getAbsolutePath());
+            }
         }
     }
     
@@ -167,12 +169,12 @@ public final class PhotoManifestGUI
             for (final FileRecord record : records) {
                 try {
                     File file = new File(record.getPath());
-                    LOG.debug("Directory (" + file.getParent() + ") " + FileRecordCodec.calculateChecksum(file.getParent(), HashType.SHA256));
+                    LOG.debug("Directory ({}) {}", file.getParent(), FileRecordCodec.calculateChecksum(file.getParent(), HashType.SHA256));
                     
                     boolean verified = FileRecordCodec.verifyFileRecord(record);
                       
-                    if (! verified) {
-                        LOG.debug("unable to verify file " + record.getPath());
+                    if (!verified) {
+                        LOG.debug("unable to verify file {}", record.getPath());
                     }
                       
                 } catch (IOException ie) {

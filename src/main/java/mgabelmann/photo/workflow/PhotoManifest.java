@@ -1,12 +1,10 @@
 package mgabelmann.photo.workflow;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 
 import mgabelmann.photo.workflow.gui.PhotoManifestGUI;
 import mgabelmann.photo.workflow.io.FileRecord;
@@ -21,7 +19,7 @@ import org.apache.logging.log4j.Logger;
  */
 public final class PhotoManifest {
     /** Mode of application. */
-    private enum Mode {
+    public enum Mode {
         GUI, //Graphical Mode
         CLI  //Command line Mode
     }
@@ -55,7 +53,7 @@ public final class PhotoManifest {
         this.rootdir = rootdir;
         this.records = new ArrayList<>();
         
-        if (mode == Mode.GUI) {
+        if (this.mode == Mode.GUI) {
             this.pmg = new PhotoManifestGUI(this);
             
         } else {
@@ -160,7 +158,7 @@ public final class PhotoManifest {
      * Entry point for application.
      * @param args arguments
      */
-    public final static void main(final String[] args) {
+    public static void main(final String[] args) {
         boolean error = false;
         Mode mode = Mode.GUI;
         File directory = null;
