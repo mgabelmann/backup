@@ -2,14 +2,12 @@ package mgabelmann.photo.workflow.io;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import mgabelmann.photo.workflow.HashType;
-import mgabelmann.photo.workflow.exception.WorkflowRuntimeException;
+import mgabelmann.photo.workflow.exception.WorkflowException;
 import mgabelmann.util.FileUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,17 +37,14 @@ public final class Backup extends AbstractWorkflow {
     public static void main(final String[] args) {
         Backup backup = new Backup(
         	new File("P:/Mike/catalog1/03_raw/01_working/2024"),
-        	new File("Z:/catalog1/03_raw/01_working/2024"));
+        	new File("Z:/catalog1/03_raw/01_working/2024")
+        );
         
         try {
             backup.process();
             
-        } catch (IOException ioe) {
-            LOG.fatal(ioe);
-            
-        } catch (InterruptedException ie) {
-        	LOG.error(ie);
-        	Thread.currentThread().interrupt();
+        } catch (WorkflowException we) {
+            LOG.error(we.getMessage());
         }
     }
 
@@ -59,7 +54,7 @@ public final class Backup extends AbstractWorkflow {
      * @param dirRemote dirRemote remote directory (backup files)
      */
     public Backup(final File workDir, final File dirRemote) {
-        this(workDir, dirRemote, HashType.SHA256, false);
+        this(workDir, dirRemote, DEFAULT_HASHTYPE, DEFAULT_VERIFY);
     }
 
     /**
@@ -76,19 +71,24 @@ public final class Backup extends AbstractWorkflow {
     }
 
     @Override
-    public void process() throws IOException, InterruptedException {
+    public void process() throws WorkflowException {
         if (LOG.isInfoEnabled()) {
             LOG.info("backup - starting");
         }
-        
-        this.backupDirectory(dirLocal, dirRemote);
-        
-        service.shutdown();
 
-        boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
+        try {
+            this.backupDirectory(dirLocal, dirRemote);
 
-        if (timeout) {
-            LOG.warn("service timed out");
+            service.shutdown();
+
+            boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
+
+            if (timeout) {
+                LOG.warn("service timed out");
+            }
+
+        } catch (IOException | InterruptedException e) {
+            throw new WorkflowException(e);
         }
         
         if (LOG.isInfoEnabled()) { 
@@ -97,13 +97,13 @@ public final class Backup extends AbstractWorkflow {
     }
 
     @Override
-    public void restore() {
-        throw new WorkflowRuntimeException("not implemented yet");
+    public void restore() throws WorkflowException {
+        throw new WorkflowException("not implemented yet");
     }
 
     @Override
-    public void validate() {
-        throw new WorkflowRuntimeException("not implemented yet");
+    public void validate() throws WorkflowException {
+        throw new WorkflowException("not implemented yet");
     }
     
     /**

@@ -11,7 +11,10 @@ import mgabelmann.photo.workflow.exception.WorkflowException;
  * @author Mike Gabelmann
  */
 public abstract class AbstractWorkflow {
-    
+    public static final HashType DEFAULT_HASHTYPE = HashType.SHA256;
+
+    public static final boolean DEFAULT_VERIFY = false;
+
     /** local directory. copy from. */
     protected transient final File dirLocal;
     
@@ -23,9 +26,10 @@ public abstract class AbstractWorkflow {
     
     /** Verify files. */
     protected transient final boolean verify;
-    
+
+
     /**
-     * Constructor.
+     * Constructor, all args.
      * @param dirLocal local directory
      * @param dirRemote remote directory
      * @param type checksum type
@@ -66,23 +70,39 @@ public abstract class AbstractWorkflow {
         this.type = type;
         this.verify = verify;
     }
-    
+
+    public final File getDirLocal() {
+        return dirLocal;
+    }
+
+    public final File getDirRemote() {
+        return dirRemote;
+    }
+
+    public final HashType getType() {
+        return type;
+    }
+
+    public final boolean isVerify() {
+        return verify;
+    }
+
     /**
      * Process workflow.
      * @throws Exception error processing
      */
-    public abstract void process() throws Exception;
+    public abstract void process() throws WorkflowException;
     
     /**
      * Restore workflow.
      * @throws Exception error restoring
      */
-    public abstract void restore() throws Exception;
+    public abstract void restore() throws WorkflowException;
     
     /**
      * Verify workflow.
      * @throws Exception error verifying
      */
-    public abstract void validate() throws Exception;
+    public abstract void validate() throws WorkflowException;
 
 }

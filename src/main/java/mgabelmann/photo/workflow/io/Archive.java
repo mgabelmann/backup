@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 
 import mgabelmann.photo.workflow.HashType;
+import mgabelmann.photo.workflow.exception.WorkflowException;
 import mgabelmann.photo.workflow.exception.WorkflowRuntimeException;
 import mgabelmann.util.FileUtil;
 import org.apache.logging.log4j.LogManager;
@@ -63,8 +63,9 @@ public final class Archive extends AbstractWorkflow {
         
         try {
             archive.process();
-        } catch (IOException ie) {
-            LOG.fatal(ie);
+
+        } catch (WorkflowException we) {
+            LOG.fatal(we);
         }
     }
     
@@ -82,58 +83,68 @@ public final class Archive extends AbstractWorkflow {
     }
    
     /** {@inheritDoc} */
-    public void process() throws IOException {
+    public void process() throws WorkflowException {
         archiveDirectory(dirLocal);
-        
-        FileRecordCodec.writeFile(records, dirRemote);
-        
+
+        try {
+            FileRecordCodec.writeFile(records, dirRemote);
+
+        } catch (IOException ie) {
+            throw new WorkflowException(ie);
+        }
+
         if (LOG.isDebugEnabled()) { LOG.debug("finished archiving files"); }
     }
     
     /** {@inheritDoc} */
-    public void validate() throws IOException {
-        FileRecordCodec.readFile(new File(dirRemote, FileRecordCodec.FILENAME), records);
-        
-        File path;
-        File remoteFile;
-        
-        for (FileRecord record : records) {
-            path = new File(record.getPath());
-            
-            final String dirChecksumName = calculateDirectoryName(path.getParentFile(), true, type);
-            final String extension = FileUtil.getFileExtension(path);
-            
-            remoteFile = new File(dirRemote, dirChecksumName + File.separator + record.getSum() + "." + extension);
-            
-            try {
-                if (FileRecordCodec.verifyFileChecksum(remoteFile, record.getType(), record.getSum())) {
-                    LOG.info(record.getPath() + " checksum - passed");
-                    
-                } else {
-                    LOG.warn(record.getPath() + " checksum - failed");
+    public void validate() throws WorkflowException {
+        try {
+            FileRecordCodec.readFile(new File(dirRemote, FileRecordCodec.FILENAME), records);
+
+            File path;
+            File remoteFile;
+
+            for (FileRecord record : records) {
+                path = new File(record.getPath());
+
+                final String dirChecksumName = calculateDirectoryName(path.getParentFile(), true, type);
+                final String extension = FileUtil.getFileExtension(path);
+
+                remoteFile = new File(dirRemote, dirChecksumName + File.separator + record.getSum() + "." + extension);
+
+                try {
+                    if (FileRecordCodec.verifyFileChecksum(remoteFile, record.getType(), record.getSum())) {
+                        LOG.info(record.getPath() + " checksum - passed");
+
+                    } else {
+                        LOG.warn(record.getPath() + " checksum - failed");
+                    }
+
+                } catch (FileNotFoundException fnfe) {
+                    LOG.error(fnfe);
                 }
-                
-            } catch (FileNotFoundException fnfe) {
-                LOG.error(fnfe);
             }
+
+        } catch (IOException ioe) {
+            throw new WorkflowException(ioe);
         }
         
         if (LOG.isDebugEnabled()) { LOG.debug("finished verifying files"); }
     }
     
     /** {@inheritDoc} */
-    public void restore() throws Exception {
-        throw new WorkflowRuntimeException("not implemented yet");
+    public void restore() throws WorkflowException {
+        throw new WorkflowException("not implemented yet");
     }
     
     /**
      * Process a directories files.
      * @param dirProcess directory to process
-     * @throws IOException error processing
+     * @throws WorkflowException error processing
      */
     private void archiveDirectory(
         final File dirProcess) 
-        throws IOException {
+        throws WorkflowException {
         
         final File[] files = dirProcess.listFiles();
         
@@ -146,7 +157,7 @@ public final class Archive extends AbstractWorkflow {
                 if (f.isDirectory()) {
                     archiveDirectory(f);
                 } else {
-                    archiveFile(f, dirR);
+                    this.archiveFile(f, dirR);
                 }
             }
             
@@ -161,39 +172,44 @@ public final class Archive extends AbstractWorkflow {
      * @param dirR archive directory where file copied to
      * @throws IOException error archiving file
      */
-    private void archiveFile(final File file, final File dirR) throws IOException {
+    private void archiveFile(final File file, final File dirR) throws WorkflowException {
         //create remote directory if it doesn't exist
         if (! dirR.exists()) {
             if (! dirR.mkdir()) {
-                throw new IOException("unable to create directory " + dirR.getAbsolutePath());
+                throw new WorkflowException("unable to create directory " + dirR.getAbsolutePath());
             }
             
             LOG.info("DIR: " + dirR.getAbsolutePath() + " doesn't exist - created");
         }
-        
-        final String fileName = file.getName();
-        final int pos = fileName.lastIndexOf('.');
-        final String extension = fileName.substring(pos);
-        final String fileChecksum = FileRecordCodec.calculateChecksum(file, type);
-        
-        final File newFile = new File(dirR, fileChecksum + extension);
 
-        final LocalDateTime lastModified = Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        try {
+            final String fileName = file.getName();
+            final int pos = fileName.lastIndexOf('.');
+            final String extension = fileName.substring(pos);
+            final String fileChecksum = FileRecordCodec.calculateChecksum(file, type);
 
-        //create a file record and store it
-        final FileRecord record = new FileRecord(file.getAbsolutePath(), fileChecksum, file.length(), lastModified, type);
-        records.add(record);
-        
-        if (newFile.exists()) {
-            //chances of a collision are next to impossible (2^128 at worst, 2^64 at best) so this MUST be the same file
-            LOG.debug("FILE: " + file.getAbsolutePath() + " is identical - skipping");
-            
-        } else {
-            //copy file
-            //NOTE: if a file has changed since it was last archived it compute a new hash and be archived again
-            LOG.info("FILE: " + file.getAbsolutePath() + " is new - copying");
-            FileUtil.copyFile(file, newFile, true);
-        } 
+            final File newFile = new File(dirR, fileChecksum + extension);
+
+            final LocalDateTime lastModified = Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+            //create a file record and store it
+            final FileRecord record = new FileRecord(file.getAbsolutePath(), fileChecksum, file.length(), lastModified, type);
+            records.add(record);
+
+            if (newFile.exists()) {
+                //chances of a collision are next to impossible (2^128 at worst, 2^64 at best) so this MUST be the same file
+                LOG.debug("FILE: " + file.getAbsolutePath() + " is identical - skipping");
+
+            } else {
+                //copy file
+                //NOTE: if a file has changed since it was last archived it compute a new hash and be archived again
+                LOG.info("FILE: " + file.getAbsolutePath() + " is new - copying");
+                FileUtil.copyFile(file, newFile, true);
+            }
+
+        } catch (IOException ioe) {
+            throw new WorkflowException(ioe);
+        }
     }
     
     /**

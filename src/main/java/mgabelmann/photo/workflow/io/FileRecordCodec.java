@@ -148,7 +148,6 @@ public final class FileRecordCodec {
             case SHA384 -> DigestUtils.sha384Hex(s);
             case SHA512 -> DigestUtils.sha512Hex(s);
         };
-
     }
     
     /**
