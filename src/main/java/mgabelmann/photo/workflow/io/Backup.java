@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.exception.WorkflowException;
 import mgabelmann.util.FileUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
  */
 public final class Backup extends AbstractWorkflow {
     /** Logger. */
-    private static final Logger LOG = LogManager.getLogger(Backup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Backup.class);
     
     /** Service that ensures that the file checksums are threaded for optimum performance. */
     private final ExecutorService service;

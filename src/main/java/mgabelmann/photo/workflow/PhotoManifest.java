@@ -9,8 +9,8 @@ import java.util.Collection;
 import mgabelmann.photo.workflow.gui.PhotoManifestGUI;
 import mgabelmann.photo.workflow.io.FileRecord;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -25,7 +25,7 @@ public final class PhotoManifest {
     }
     
     /** Logger. */
-    private final static Logger LOG = LogManager.getLogger(PhotoManifest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhotoManifest.class);
     
     /** Mode of application. */
     private final transient Mode mode;
@@ -72,10 +72,10 @@ public final class PhotoManifest {
             final FileRecord record = new FileRecord(f.getAbsolutePath(), checksum, f.length(), LocalDateTime.now(), HashType.SHA256);
             records.add(record);
             
-            if (LOG.isDebugEnabled()) { LOG.debug(record); }
+            LOGGER.debug(record.toString());
             
         } catch (IOException fnfe) {
-            LOG.error(fnfe);
+            LOGGER.error(fnfe.getMessage());
         }
     }
     
@@ -84,8 +84,8 @@ public final class PhotoManifest {
      * @param d
      */
     public void processDirectory(final File d) {
-        if (LOG.isDebugEnabled()) { 
-            LOG.debug("processing directory: {}", d.getAbsolutePath());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("processing directory: {}", d.getAbsolutePath());
         }
         
         final File[] files = d.listFiles();
@@ -168,7 +168,7 @@ public final class PhotoManifest {
                 mode = Mode.valueOf(args[0]);
 
             } catch (IllegalArgumentException iae) {
-                LOG.fatal("invalid Mode={}, choose from {}", args[0], Mode.values());
+                LOGGER.error("invalid Mode={}, choose from {}", args[0], Mode.values());
                 error = true;
             }
         }
@@ -177,11 +177,11 @@ public final class PhotoManifest {
             directory = new File(args[1]);
 
             if (!directory.exists()) {
-                LOG.fatal("{} does not exist", args[1]);
+                LOGGER.error("{} does not exist", args[1]);
                 error = true;
 
             } else if (!directory.isDirectory()) {
-                LOG.fatal("{} is not a directory", args[1]);
+                LOGGER.error("{} is not a directory", args[1]);
                 error = true;
             }
         }

@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.util.FileUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
  */
 public final class ChecksumCompare implements Runnable {
     /** Logger. */
-    private static final Logger LOG = LogManager.getLogger(ChecksumCompare.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChecksumCompare.class);
     
     private final transient File source;
     private final transient File dest;
@@ -42,10 +42,10 @@ public final class ChecksumCompare implements Runnable {
     public void run() {
         try {
             equal = FileUtil.verifyCopy(source, dest, type);
-            LOG.info("FILE: {} checksum - equal", source.getAbsolutePath() );
+            LOGGER.info("FILE: {} checksum - equal", source.getAbsolutePath() );
             
         } catch (IOException e) {
-            LOG.warn("FILE: {} checksum - failed", source.getAbsolutePath());
+            LOGGER.warn("FILE: {} checksum - failed", source.getAbsolutePath());
         }
     }
 

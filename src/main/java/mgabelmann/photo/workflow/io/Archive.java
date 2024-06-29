@@ -12,8 +12,8 @@ import java.util.Collection;
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.exception.WorkflowException;
 import mgabelmann.util.FileUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Copies a number of files and/or directories to a new directory/file structure
@@ -36,8 +36,8 @@ import org.apache.logging.log4j.Logger;
  */
 public final class Archive extends AbstractWorkflow {
     /** Logger. */
-    private static final Logger LOG = LogManager.getLogger(Archive.class);
-    
+    private static final Logger LOG = LoggerFactory.getLogger(Archive.class);
+
     /** 
      * Represents the number of characters in the archive directory name.
      * 16^x, so if x is 3 the number of directories will be 4096. Considering
@@ -64,7 +64,7 @@ public final class Archive extends AbstractWorkflow {
             archive.process();
 
         } catch (WorkflowException we) {
-            LOG.fatal(we);
+            LOG.error(we.getMessage());
         }
     }
     
@@ -122,7 +122,7 @@ public final class Archive extends AbstractWorkflow {
                     }
 
                 } catch (FileNotFoundException fnfe) {
-                    LOG.error(fnfe);
+                    LOG.error(fnfe.getMessage());
                 }
             }
 

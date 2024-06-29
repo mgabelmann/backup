@@ -14,8 +14,8 @@ import java.util.Collection;
 import mgabelmann.photo.workflow.HashType;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles the reading and writing of FileRecord objects. 
@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
  */
 public final class FileRecordCodec {
     /** Logger. */
-    private static final Logger LOG = LogManager.getLogger(FileRecordCodec.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileRecordCodec.class);
     
     /** Date mask format. */
     private static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -51,8 +51,8 @@ public final class FileRecordCodec {
         
         final BufferedReader br = new BufferedReader(new FileReader(manifest));
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("opening file={}", manifest.getAbsolutePath());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("opening file={}", manifest.getAbsolutePath());
         }
         
         String data;
@@ -60,7 +60,7 @@ public final class FileRecordCodec {
             try {
                 records.add(readFileRecord(data));
             } catch (ParseException pe) {
-                LOG.warn(pe);
+                LOGGER.warn(pe.getMessage());
             }
         }
         
@@ -86,8 +86,8 @@ public final class FileRecordCodec {
         
         final DataOutputStream dos = new DataOutputStream(new FileOutputStream(f));
         
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("creating file={}", f.getAbsolutePath());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("creating file={}", f.getAbsolutePath());
         }
         
         for (FileRecord record : records) {
@@ -164,7 +164,7 @@ public final class FileRecordCodec {
         final String[] fields = data.split(SEPARATOR);
         
         if (fields.length != 5) {
-            LOG.warn("invalid record ({}). skipping", data);
+            LOGGER.warn("invalid record ({}). skipping", data);
             throw new ParseException(data, 0);
         }
 
@@ -198,8 +198,8 @@ public final class FileRecordCodec {
         
         dos.writeBytes(sb.toString());
         
-        if (LOG.isDebugEnabled()) { 
-            LOG.debug(sb.toString()); 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(sb.toString());
         }
     }
       
