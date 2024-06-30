@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -32,55 +33,39 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 
+/**
+ *
+ *
+ *
+ */
 public class Copyright {
+    /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(Copyright.class);
 
     /** Maximum number of characters for a titles group before breaking into a new group. */
     public static final int TITLES_GROUP_MAX_CHARACTERS = 1950;
 
+    /** Directory to process. */
     private final File directory;
+
+    /** Copyright case number. */
     private final String caseNumber;
+
+    /** Is group published or unpublished. */
     private boolean published;
 
+    /** Service for scanning files. */
     private final ExecutorService service;
 
+    /** Results of scanning files. */
     private List<FileInfo> fileInfos;
 
-    /**
-     * Entry point for using this utility.
-     * @param args
-     */
-    public static void main(final String[] args) {
-        /*
-        if (args.length != 3) {
-            System.err.println("invalid number of arguments");
-            System.exit(1);
-        }
-
-        File directory = new File(args[0]);
-        String caseNumber = args[1];
-        boolean published = args[2].equalsIgnoreCase("p");
-        */
-
-        File directory = new File("P:\\Mike\\catalog1\\05_output\\copyright\\to_submit\\2024_Q2");
-        String caseNumber = "1-xxxx";
-        boolean published = true;
-
-        Copyright copyright = new Copyright(directory, caseNumber, published);
-
-        try {
-            copyright.process();
-
-        } catch (WorkflowException we) {
-            LOGGER.error(we.getMessage());
-        }
-    }
 
     /**
      * Constructor.
-     * @param directory
-     * @param caseNumber
-     * @param published
+     * @param directory directory
+     * @param caseNumber case number
+     * @param published published or unpublished
      */
     public Copyright(
             final File directory,
@@ -104,6 +89,40 @@ public class Copyright {
         this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
     }
 
+    /**
+     * Entry point for using this utility.
+     * @param args arguments
+     */
+    public static void main(final String[] args) {
+        /*
+        if (args.length != 3) {
+            System.err.println("invalid number of arguments");
+            System.exit(1);
+        }
+
+        File directory = new File(args[0]);
+        String caseNumber = args[1];
+        boolean published = args[2].equalsIgnoreCase("p");
+        */
+
+        File directory = new File("P:\\Mike\\catalog1\\05_output\\copyright\\to_submit\\test");
+        String caseNumber = "casenumber";
+        boolean published = false;
+
+        Copyright copyright = new Copyright(directory, caseNumber, published);
+
+        try {
+            copyright.process();
+
+        } catch (WorkflowException we) {
+            LOGGER.error(we.getMessage());
+        }
+    }
+
+    /**
+     * Call this to do work.
+     * @throws WorkflowException error
+     */
     public void process() throws WorkflowException {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("copyright - processing directory {}, for case number {}", directory, caseNumber);
@@ -121,16 +140,18 @@ public class Copyright {
             Map<String, List<FileInfo>> titleRecords = new TreeMap<>();
 
             for (FileInfo fileInfo : fileInfos) {
-                if (dateRecords.containsKey(fileInfo.getDate())) {
-                    dateRecords.get(fileInfo.getDate()).add(fileInfo);
+                LocalDate date = published ? fileInfo.getDate() : LocalDate.now();
+
+                if (dateRecords.containsKey(date)) {
+                    dateRecords.get(date).add(fileInfo);
 
                 } else {
                     ArrayList<FileInfo> infos = new ArrayList<>();
                     infos.add(fileInfo);
-                    dateRecords.put(fileInfo.getDate(), infos);
+                    dateRecords.put(date, infos);
                 }
 
-                String dateStr = DateTimeFormatter.ofPattern("yyyy-MM").format(fileInfo.getDate());
+                String dateStr = DateTimeFormatter.ofPattern("yyyy-MM").format(date);
 
                 if (titleRecords.containsKey(dateStr)) {
                     titleRecords.get(dateStr).add(fileInfo);
@@ -144,9 +165,7 @@ public class Copyright {
 
             //generate manifest file
             StringBuilder sb1 = this.getManifest(dateRecords);
-            String filePrefix = published ? "p" : "u";
-            String fileBase = directory.getName();
-            String manifestFilename = (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
+            String manifestFilename = this.getManifestFilename();
             String manifestPath = directory.getAbsolutePath() + File.separator + manifestFilename;
 
             this.writeTextFile(sb1.toString(), manifestPath);
@@ -157,6 +176,8 @@ public class Copyright {
             String titlesPath = directory.getAbsolutePath() + File.separator + "_titles.txt";
 
             this.writeTextFile(titlesStr, titlesPath);
+
+            //TODO: do we want to make a PDF of the manifest file?
 
             //create ZIP file of ALL files processed/created except titles
             this.writeZipFile(dateRecords, manifestPath);
@@ -174,6 +195,12 @@ public class Copyright {
         }
     }
 
+    /**
+     * Process a single directory, it will recurse into subdirectories by default. Files are added to list if they
+     * meet criteria.
+     * @param dir directory
+     * @throws WorkflowException error
+     */
     public void processDirectory(final File dir) throws WorkflowException {
         final File[] files = dir.listFiles();
 
@@ -192,10 +219,15 @@ public class Copyright {
         }
     }
 
+    /**
+     * Process a single file.
+     * @param file file to process
+     * @throws WorkflowException error
+     */
     public void processFile(final File file) throws WorkflowException {
         try {
             final String fileName = this.getFilename(file);
-            final LocalDateTime dateTime = this.getFileDateTime(file);
+            final LocalDateTime dateTime = this.getFileDateTime(file, false);
             final String title = this.getTitle(file);
 
             fileInfos.add(new FileInfo(fileName, title, dateTime));
@@ -206,6 +238,22 @@ public class Copyright {
         }
     }
 
+    /**
+     * Get manifest filename.
+     * @return filename file name
+     */
+    String getManifestFilename() {
+        String filePrefix = published ? "p" : "u";
+        String fileBase = directory.getName();
+
+        return (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
+    }
+
+    /**
+     * Get contents for manifest file.
+     * @param dateRecords sorted records
+     * @return manifest contents
+     */
     StringBuilder getManifest(final Map<LocalDate, List<FileInfo>> dateRecords) {
         StringBuilder manifest = new StringBuilder();
 
@@ -246,6 +294,12 @@ public class Copyright {
         return manifest;
     }
 
+    /**
+     * Group all image titles into smaller groups with a maximum size.
+     * @param titleRecords sorted records
+     * @return list of titles
+     */
+    //FIXME: need to do this for published or unpublished
     List<String> getAllTitles(Map<String, List<FileInfo>> titleRecords) {
         List<String> titles = new ArrayList<>();
 
@@ -282,11 +336,26 @@ public class Copyright {
         return titles;
     }
 
+    /**
+     * Create a text file.
+     * @param sb file contents
+     * @param path path and file to create
+     * @throws IOException error
+     */
     void writeTextFile(final String sb, String path) throws IOException {
         //create or replace existing
         Files.write(Paths.get(path), sb.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+        LOGGER.info("created: {}", path);
     }
 
+    /**
+     * Create a zip file of all required files.
+     * @param dateRecords sorted records
+     * @param manifestPath location of manifest file
+     * @throws IOException error
+     */
+    //FIXME: use dateRecords or fileInfos?
     void writeZipFile(final Map<LocalDate, List<FileInfo>> dateRecords, final String manifestPath) throws IOException {
         String fileBase = directory.getName();
         String zipPath = directory.getAbsolutePath() + File.separator + (fileBase + ".zip").toLowerCase();
@@ -307,8 +376,16 @@ public class Copyright {
                 Files.copy(fileToZip.toPath(), zipOut);
             }
         }
+
+        LOGGER.info("created: {}", manifestPath);
     }
 
+    /**
+     * Get title of image from file metadata.
+     * @param file file to process
+     * @return title or empty string
+     * @throws IOException error
+     */
     String getTitle(final File file) throws IOException {
         ImageMetadata metadata = Imaging.getMetadata(file);
 
@@ -323,6 +400,7 @@ public class Copyright {
                     final String propertyName = photoshopMetadataItem.getKeyword();
                     final String propertyValue = photoshopMetadataItem.getText();
 
+                    //Object Name is the title as output by Adobe Photoshop and Lightroom
                     if (propertyName.equals("Object Name")) {
                         return propertyValue;
                     }
@@ -333,18 +411,26 @@ public class Copyright {
         return "";
     }
 
+    /**
+     * Get file name.
+     * @param file file to process
+     * @return file name
+     */
     String getFilename(final File file) {
         return file.getName();
     }
 
-    LocalDateTime getFileDateTime(final File file) throws IOException {
-        if (published) {
-            BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-            return LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+    /**
+     * Get date and time for file. Uses last modified.
+     * @param file file to process
+     * @return date and time
+     * @throws IOException error
+     */
+    LocalDateTime getFileDateTime(final File file, boolean created) throws IOException {
+        BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+        FileTime dateTime = created ? attr.creationTime() : attr.lastModifiedTime();
 
-        } else {
-            return LocalDateTime.now();
-        }
+        return LocalDateTime.ofInstant(dateTime.toInstant(), ZoneId.systemDefault());
     }
 
 }
