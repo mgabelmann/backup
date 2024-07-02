@@ -7,7 +7,6 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
-import com.itextpdf.text.Rectangle;
 import mgabelmann.photo.workflow.exception.WorkflowException;
 
 import org.apache.commons.imaging.Imaging;
@@ -187,14 +186,13 @@ public class Copyright {
             //generate manifest file
             StringBuilder sb1 = this.getManifest(dateRecords);
             String manifestFilename = this.getManifestFilename();
-            String manifestPath = directory.getAbsolutePath() + File.separator + manifestFilename;
 
-            this.writeTextFile(sb1.toString(), manifestPath);
+            this.writeTextFile(sb1.toString(), manifestFilename);
 
             //generate titles file
             List<String> titles = this.getAllTitles(titleRecords);
             String titlesStr = titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
-            String titlesPath = directory.getAbsolutePath() + File.separator + "_titles.txt";
+            String titlesPath = this.getTitlesFilename();
 
             this.writeTextFile(titlesStr, titlesPath);
 
@@ -202,7 +200,7 @@ public class Copyright {
             this.writePDF(dateRecords);
 
             //create ZIP file of ALL files processed/created except titles
-            this.writeZipFile(dateRecords, manifestPath);
+            this.writeZip(dateRecords, manifestFilename);
 
             if (!timeout) {
                 LOGGER.warn("service timed out");
@@ -213,7 +211,7 @@ public class Copyright {
         }
 
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("copyright - finished\n");
+            LOGGER.info("copyright - finished");
         }
     }
 
@@ -261,14 +259,40 @@ public class Copyright {
     }
 
     /**
-     * Get manifest filename.
-     * @return filename file name
+     * Get manifest file name.
+     * @return file name
      */
     String getManifestFilename() {
-        String filePrefix = published ? "p" : "u";
-        String fileBase = directory.getName();
+        final String filePrefix = published ? "p" : "u";
+        final String fileBase = directory.getName();
 
-        return (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
+        return directory.getAbsolutePath() + File.separator + (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
+    }
+
+    /**
+     * Get PDF file name.
+     * @return file name
+     */
+    String getPDFFilename() {
+        final String fileBase = directory.getName();
+        return directory.getAbsolutePath() + File.separator + (fileBase + ".pdf").toLowerCase();
+    }
+
+    /**
+     * Get ZIP file name.
+     * @return file name
+     */
+    String getZipFilename() {
+        final String fileBase = directory.getName();
+        return directory.getAbsolutePath() + File.separator + (fileBase + ".zip").toLowerCase();
+    }
+
+    /**
+     * Get titles file name.
+     * @return file name
+     */
+    String getTitlesFilename() {
+        return directory.getAbsolutePath() + File.separator + "_titles.txt";
     }
 
     /**
@@ -322,7 +346,7 @@ public class Copyright {
      * @return list of titles
      */
     //FIXME: need to do this for published or unpublished
-    List<String> getAllTitles(Map<String, List<FileInfo>> titleRecords) {
+    List<String> getAllTitles(final Map<String, List<FileInfo>> titleRecords) {
         List<String> titles = new ArrayList<>();
         int counter = 0;
 
@@ -356,6 +380,7 @@ public class Copyright {
 
             titles.add(sb.toString());
             sb.setLength(0);
+            counter = 0;
         }
 
         return titles;
@@ -367,7 +392,7 @@ public class Copyright {
      * @param path path and file to create
      * @throws IOException error
      */
-    void writeTextFile(final String sb, String path) throws IOException {
+    void writeTextFile(final String sb, final String path) throws IOException {
         //create or replace existing
         Files.write(Paths.get(path), sb.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
@@ -381,9 +406,8 @@ public class Copyright {
      * @throws IOException error
      */
     //FIXME: use dateRecords or fileInfos?
-    void writeZipFile(final Map<LocalDate, List<FileInfo>> dateRecords, final String manifestPath) throws IOException {
-        String fileBase = directory.getName();
-        String zipPath = directory.getAbsolutePath() + File.separator + (fileBase + ".zip").toLowerCase();
+    void writeZip(final Map<LocalDate, List<FileInfo>> dateRecords, final String manifestPath) throws IOException {
+        String zipPath = this.getZipFilename();
 
         List<String> zipPaths = new ArrayList<>();
         zipPaths.add(manifestPath);
@@ -411,7 +435,7 @@ public class Copyright {
      * @throws WorkflowException error
      */
     void writePDF(final Map<LocalDate, List<FileInfo>> dateRecords) throws WorkflowException {
-        String pdfPath = directory.getAbsolutePath() + File.separator + (directory.getName() + ".pdf").toLowerCase();
+        String pdfPath = this.getPDFFilename();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
         try {
@@ -542,7 +566,7 @@ public class Copyright {
      * @return date and time
      * @throws IOException error
      */
-    LocalDateTime getFileDateTime(final File file, boolean created) throws IOException {
+    LocalDateTime getFileDateTime(final File file, final boolean created) throws IOException {
         BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
         FileTime dateTime = created ? attr.creationTime() : attr.lastModifiedTime();
 
