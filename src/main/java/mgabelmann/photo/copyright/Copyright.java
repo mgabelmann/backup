@@ -459,12 +459,12 @@ public class Copyright {
             doc.add(p1);
 
             Table table = new Table(columns);
-            table.addCell(this.getTableHeaderCell(80, "Photograph #"));
+            table.addCell(this.getTableHeaderCell(60, "Photograph #"));
             table.addCell(this.getTableHeaderCell(180, "Filename of Photograph"));
             table.addCell(this.getTableHeaderCell(180, "Title of Photograph"));
 
             if (published) {
-                table.addCell(this.getTableHeaderCell(115, "Date of Publication"));
+                table.addCell(this.getTableHeaderCell(75, "Date of Publication"));
             }
 
             int number = 0;
