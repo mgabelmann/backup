@@ -1,11 +1,21 @@
 package mgabelmann.photo.copyright;
 
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.text.Rectangle;
 import mgabelmann.photo.workflow.exception.WorkflowException;
+
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.GenericImageMetadata;
 import org.apache.commons.imaging.common.ImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +46,7 @@ import java.util.zip.ZipOutputStream;
 /**
  *
  *
- *
+ * @author mgabelmann
  */
 public class Copyright {
     /** Logger. */
@@ -44,6 +54,11 @@ public class Copyright {
 
     /** Maximum number of characters for a titles group before breaking into a new group. */
     public static final int TITLES_GROUP_MAX_CHARACTERS = 1950;
+
+    public static final int IMAGES_PER_GROUP_REGISTRATION_MAX = 750;
+
+    private static final int FONT_SIZE_BODY = 8;
+    private static final int FONT_SIZE_HEADER = 10;
 
     /** Directory to process. */
     private final File directory;
@@ -78,7 +93,7 @@ public class Copyright {
         } else if (!directory.isDirectory()) {
             throw new IllegalArgumentException("directory is not a directory");
 
-        } else if (caseNumber == null || caseNumber.trim().length() == 0) {
+        } else if (caseNumber == null || caseNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("case number is required");
         }
 
@@ -107,7 +122,7 @@ public class Copyright {
 
         File directory = new File("P:\\Mike\\catalog1\\05_output\\copyright\\to_submit\\test");
         String caseNumber = "casenumber";
-        boolean published = false;
+        boolean published = true;
 
         Copyright copyright = new Copyright(directory, caseNumber, published);
 
@@ -134,6 +149,12 @@ public class Copyright {
             service.shutdown();
 
             boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
+
+            if (fileInfos.size() > IMAGES_PER_GROUP_REGISTRATION_MAX) {
+                throw new WorkflowException("Too many images, max image count for bulk registration is: " + IMAGES_PER_GROUP_REGISTRATION_MAX);
+            } else {
+                LOGGER.info("found {} images to process", fileInfos.size());
+            }
 
             //group photos by date, so we can sort by date
             Map<LocalDate, List<FileInfo>> dateRecords = new TreeMap<>();
@@ -178,6 +199,7 @@ public class Copyright {
             this.writeTextFile(titlesStr, titlesPath);
 
             //TODO: do we want to make a PDF of the manifest file?
+            this.writePDF(dateRecords);
 
             //create ZIP file of ALL files processed/created except titles
             this.writeZipFile(dateRecords, manifestPath);
@@ -302,6 +324,7 @@ public class Copyright {
     //FIXME: need to do this for published or unpublished
     List<String> getAllTitles(Map<String, List<FileInfo>> titleRecords) {
         List<String> titles = new ArrayList<>();
+        int counter = 0;
 
         for (Map.Entry<String, List<FileInfo>> entry : titleRecords.entrySet()) {
             String key = entry.getKey();
@@ -313,20 +336,22 @@ public class Copyright {
             StringBuilder sb = new StringBuilder();
 
             for (FileInfo value : values) {
+                ++counter;
                 String name = value.getName();
 
                 if (sb.length() + name.length() > TITLES_GROUP_MAX_CHARACTERS) {
-                    sb.insert(0, key + ": ");
+                    sb.insert(0, key + "(" + counter +"): ");
                     sb.delete(sb.length() - 2, sb.length());
 
                     titles.add(sb.toString());
                     sb.setLength(0);
+                    counter = 0;
                 }
 
                 sb.append(name).append(", ");
             }
 
-            sb.insert(0, key + ": ");
+            sb.insert(0, key + " (" + counter +"): ");
             sb.delete(sb.length() - 2, sb.length());
 
             titles.add(sb.toString());
@@ -378,6 +403,97 @@ public class Copyright {
         }
 
         LOGGER.info("created: {}", manifestPath);
+    }
+
+    /**
+     * Create PDF of all records which is very similar to CSV version.
+     * @param dateRecords sorted records
+     * @throws WorkflowException error
+     */
+    void writePDF(final Map<LocalDate, List<FileInfo>> dateRecords) throws WorkflowException {
+        String pdfPath = directory.getAbsolutePath() + File.separator + (directory.getName() + ".pdf").toLowerCase();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+
+        try {
+            PdfWriter writer = new PdfWriter(pdfPath);
+            //writer.setPageEvent(new FooterPdfPageEventHelper());
+
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            pdfDoc.setDefaultPageSize(PageSize.A4);
+
+            Document doc = new Document(pdfDoc);
+            doc.setMargins(15,15,15,15);
+            doc.setFontSize(FONT_SIZE_BODY);
+
+            String publicationType = published ? "Published" : "Unpublished";
+            int columns = published ? 4 : 3;
+
+            Paragraph p1 = new Paragraph("Group Registration of " + publicationType + " Photographs" + System.lineSeparator());
+            p1.add("This is a complete list of photographs for case number: " + caseNumber + System.lineSeparator());
+            p1.setFontSize(FONT_SIZE_HEADER);
+            p1.setBold();
+            doc.add(p1);
+
+            Table table = new Table(columns);
+            table.addCell(this.getTableHeaderCell(80, "Photograph #"));
+            table.addCell(this.getTableHeaderCell(180, "Filename of Photograph"));
+            table.addCell(this.getTableHeaderCell(180, "Title of Photograph"));
+
+            if (published) {
+                table.addCell(this.getTableHeaderCell(115, "Date of Publication"));
+            }
+
+            int number = 0;
+            for (Map.Entry<LocalDate, List<FileInfo>> items : dateRecords.entrySet()) {
+                for (FileInfo item : items.getValue()) {
+                    table.addCell(this.getTableCell("" + (++number)));
+                    table.addCell(this.getTableCell(item.getFileName()));
+                    table.addCell(this.getTableCell(item.getName()));
+
+                    if (published) {
+                        String dateStr = dateFormatter.format(item.getDate());
+                        table.addCell(this.getTableCell(dateStr));
+                    }
+                }
+            }
+
+            doc.add(table);
+            doc.close();
+
+            LOGGER.info("created: {}", pdfPath);
+
+        } catch (Exception e) {
+            throw new WorkflowException(e);
+        }
+    }
+
+    /**
+     * Get table header cell.
+     * @param width width of cell
+     * @param text text for cell
+     * @return table cell
+     */
+    private Cell getTableHeaderCell(final int width, final String text) {
+        Cell cell = new Cell(1, 1).add(new Paragraph(text));
+        cell.setWidth(width);
+        cell.setPadding(3);
+        cell.setFontSize(FONT_SIZE_BODY);
+        cell.setBold();
+
+        return cell;
+    }
+
+    /**
+     * Get table cell.
+     * @param text text for cell
+     * @return table cell
+     */
+    private Cell getTableCell(final String text) {
+        Cell cell = new Cell(1, 1).add(new Paragraph(text));
+        cell.setPadding(3);
+        cell.setFontSize(FONT_SIZE_BODY);
+
+        return cell;
     }
 
     /**
