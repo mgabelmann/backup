@@ -1,17 +1,13 @@
 package mgabelmann.photo.copyright;
 
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.pdf.ColumnText;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfPageEventHelper;
-import com.itextpdf.text.pdf.PdfWriter;
-
 /**
  *
  */
+public class FooterPdfPageEventHelper {
+
+}
+
+/*
 public class FooterPdfPageEventHelper extends PdfPageEventHelper {
     private final Font f = new Font(Font.FontFamily.COURIER, 8, Font.NORMAL);
 
@@ -27,5 +23,5 @@ public class FooterPdfPageEventHelper extends PdfPageEventHelper {
     private Phrase footer(final int page) {
         return new Phrase("Page " + page, f);
     }
-
 }
+*/
