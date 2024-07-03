@@ -1,5 +1,6 @@
 package mgabelmann.photo.copyright;
 
+import com.itextpdf.kernel.events.PdfDocumentEvent;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -440,14 +441,14 @@ public class Copyright {
 
         try {
             PdfWriter writer = new PdfWriter(pdfPath);
-            //writer.setPageEvent(new FooterPdfPageEventHelper());
-
             PdfDocument pdfDoc = new PdfDocument(writer);
-            pdfDoc.setDefaultPageSize(PageSize.A4);
 
-            Document doc = new Document(pdfDoc);
-            doc.setMargins(15,15,15,15);
+            Document doc = new Document(pdfDoc, PageSize.A4, true);
+            doc.setMargins(20,20,30,20);
             doc.setFontSize(FONT_SIZE_BODY);
+
+            FooterEventHandler footerHandler = new FooterEventHandler();
+            pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
 
             String publicationType = published ? "Published" : "Unpublished";
             int columns = published ? 4 : 3;
@@ -482,7 +483,11 @@ public class Copyright {
             }
 
             doc.add(table);
-            doc.close();
+
+            //update the footer with the total number of pages
+            footerHandler.writeTotal(pdfDoc);
+
+            pdfDoc.close();
 
             LOGGER.info("created: {}", pdfPath);
 
