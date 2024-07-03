@@ -22,8 +22,8 @@ import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.PhotoManifest;
 import mgabelmann.photo.workflow.io.FileRecord;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,10 +33,9 @@ import org.apache.logging.log4j.Logger;
 public final class PhotoManifestGUI 
     extends JFrame
     implements PropertyChangeListener, ActionListener {
-    
-    
+
     /** Logger. */
-    private final static Logger LOG = LogManager.getLogger(PhotoManifestGUI.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhotoManifestGUI.class);
     
     /** Parent. */
     private final PhotoManifest pm;
@@ -141,8 +140,8 @@ public final class PhotoManifestGUI
             pm.setRootdir(fc.getSelectedFile());
             labelFile.setText(fc.getSelectedFile().getAbsolutePath());
             
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Selected directory: {}", fc.getSelectedFile().getAbsolutePath());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Selected directory: {}", fc.getSelectedFile().getAbsolutePath());
             }
         }
     }
@@ -169,16 +168,16 @@ public final class PhotoManifestGUI
             for (final FileRecord record : records) {
                 try {
                     File file = new File(record.getPath());
-                    LOG.debug("Directory ({}) {}", file.getParent(), FileRecordCodec.calculateChecksum(file.getParent(), HashType.SHA256));
+                    LOGGER.debug("Directory ({}) {}", file.getParent(), FileRecordCodec.calculateChecksum(file.getParent(), HashType.SHA256));
                     
                     boolean verified = FileRecordCodec.verifyFileRecord(record);
                       
                     if (!verified) {
-                        LOG.debug("unable to verify file {}", record.getPath());
+                        LOGGER.debug("unable to verify file {}", record.getPath());
                     }
                       
                 } catch (IOException ie) {
-                    LOG.error(ie);
+                    LOGGER.error(ie.getMessage());
                 }
                 
                 setProgress(++progress);
@@ -192,7 +191,7 @@ public final class PhotoManifestGUI
         try {
             pm.readFile();
         } catch (IOException ie) {
-            LOG.error(ie);
+            LOGGER.error(ie.getMessage());
         }
     }
     
@@ -200,7 +199,7 @@ public final class PhotoManifestGUI
         try {
             pm.writeFile();
         } catch (IOException ie) {
-            LOG.error(ie);
+            LOGGER.error(ie.getMessage());
         }
     }
     

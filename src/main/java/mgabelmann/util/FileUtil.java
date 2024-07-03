@@ -8,8 +8,8 @@ import java.nio.channels.FileChannel;
 
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
  */
 public final class FileUtil {
     /** Logger. */
-    private static final Logger LOG = LogManager.getLogger(FileUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
     
     /** Do not instantiate this class. */
     private FileUtil() {}
@@ -53,12 +53,12 @@ public final class FileUtil {
             destChannel.close();
         	
         } finally {
-        	LOG.trace("closed channels and streams");
+        	LOGGER.trace("closed channels and streams");
         }
        
         //preserve last modified date (we check this)
         if (preserveLastModified && ! dest.setLastModified(source.lastModified())) {
-            LOG.warn("FILE: {} unable to set last modified date", dest.getAbsolutePath());
+            LOGGER.warn("FILE: {} unable to set last modified date", dest.getAbsolutePath());
         }
     }
     
