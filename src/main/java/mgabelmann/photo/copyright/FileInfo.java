@@ -5,18 +5,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-
+/**
+ * Contains information about a file.
+ */
 public final class FileInfo implements Serializable, Comparable<FileInfo> {
-
     private final String fileName;
     private final String title;
     private final LocalDateTime dateTime;
 
     /**
      * Constructor.
-     * @param fileName
-     * @param title
-     * @param dateTime
+     * @param fileName path to file
+     * @param title file title if exists
+     * @param dateTime date and time
      */
     public FileInfo(final String fileName, final String title, final LocalDateTime dateTime) {
         if (fileName == null || fileName.isEmpty()) {
@@ -61,7 +62,7 @@ public final class FileInfo implements Serializable, Comparable<FileInfo> {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof FileInfo fileInfo)) return false;
 
@@ -80,7 +81,6 @@ public final class FileInfo implements Serializable, Comparable<FileInfo> {
         }
 
         return this.dateTime.compareTo(o.dateTime);
-        //return this.dateTime.compareTo(o.dateTime) + this.getName().compareTo(o.getName());
     }
 
 }

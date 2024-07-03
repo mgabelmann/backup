@@ -57,8 +57,10 @@ public class Copyright {
 
     public static final int IMAGES_PER_GROUP_REGISTRATION_MAX = 750;
 
-    private static final int FONT_SIZE_BODY = 8;
-    private static final int FONT_SIZE_HEADER = 10;
+    private static final int TABLE_FONT_SIZE = 8;
+    private static final int TABLE_PADDING = 3;
+
+    private static final int BODY_FONT_SIZE = 10;
 
     /** Directory to process. */
     private final File directory;
@@ -100,6 +102,7 @@ public class Copyright {
         this.directory = directory;
         this.caseNumber = caseNumber;
         this.published = published;
+
         this.fileInfos = new ArrayList<>();
         this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
     }
@@ -109,7 +112,6 @@ public class Copyright {
      * @param args arguments
      */
     public static void main(final String[] args) {
-        /*
         if (args.length != 3) {
             System.err.println("invalid number of arguments");
             System.exit(1);
@@ -118,11 +120,10 @@ public class Copyright {
         File directory = new File(args[0]);
         String caseNumber = args[1];
         boolean published = args[2].equalsIgnoreCase("p");
-        */
 
-        File directory = new File("P:\\Mike\\catalog1\\05_output\\copyright\\to_submit\\test");
-        String caseNumber = "casenumber";
-        boolean published = true;
+//        File directory = new File("P:\\Mike\\catalog1\\05_output\\copyright\\to_submit\\test");
+//        String caseNumber = "casenumber";
+//        boolean published = false;
 
         Copyright copyright = new Copyright(directory, caseNumber, published);
 
@@ -139,9 +140,7 @@ public class Copyright {
      * @throws WorkflowException error
      */
     public void process() throws WorkflowException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("copyright - processing directory {}, for case number {}", directory, caseNumber);
-        }
+        LOGGER.info("copyright - processing directory '{}', for case number '{}', published={}", directory, caseNumber, published);
 
         try {
             this.processDirectory(this.directory);
@@ -152,6 +151,7 @@ public class Copyright {
 
             if (fileInfos.size() > IMAGES_PER_GROUP_REGISTRATION_MAX) {
                 throw new WorkflowException("Too many images, max image count for bulk registration is: " + IMAGES_PER_GROUP_REGISTRATION_MAX);
+
             } else {
                 LOGGER.info("found {} images to process", fileInfos.size());
             }
@@ -197,7 +197,7 @@ public class Copyright {
 
             this.writeTextFile(titlesStr, titlesPath);
 
-            //TODO: do we want to make a PDF of the manifest file?
+            //create PDF manifest file
             this.writePDF(dateRecords);
 
             //create ZIP file of ALL files processed/created except titles
@@ -211,9 +211,7 @@ public class Copyright {
             throw new WorkflowException(e);
         }
 
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("copyright - finished");
-        }
+        LOGGER.info("copyright - finished");
     }
 
     /**
@@ -346,7 +344,6 @@ public class Copyright {
      * @param titleRecords sorted records
      * @return list of titles
      */
-    //FIXME: need to do this for published or unpublished
     List<String> getAllTitles(final Map<String, List<FileInfo>> titleRecords) {
         List<String> titles = new ArrayList<>();
         int counter = 0;
@@ -427,7 +424,7 @@ public class Copyright {
             }
         }
 
-        LOGGER.info("created: {}", manifestPath);
+        LOGGER.info("created: {}", zipPath);
     }
 
     /**
@@ -445,7 +442,7 @@ public class Copyright {
 
             Document doc = new Document(pdfDoc, PageSize.A4, true);
             doc.setMargins(20,20,30,20);
-            doc.setFontSize(FONT_SIZE_BODY);
+            doc.setFontSize(TABLE_FONT_SIZE);
 
             FooterEventHandler footerHandler = new FooterEventHandler();
             pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
@@ -455,7 +452,7 @@ public class Copyright {
 
             Paragraph p1 = new Paragraph("Group Registration of " + publicationType + " Photographs" + System.lineSeparator());
             p1.add("This is a complete list of photographs for case number: " + caseNumber + System.lineSeparator());
-            p1.setFontSize(FONT_SIZE_HEADER);
+            p1.setFontSize(BODY_FONT_SIZE);
             p1.setBold();
             doc.add(p1);
 
@@ -505,8 +502,8 @@ public class Copyright {
     private Cell getTableHeaderCell(final int width, final String text) {
         Cell cell = new Cell(1, 1).add(new Paragraph(text));
         cell.setWidth(width);
-        cell.setPadding(3);
-        cell.setFontSize(FONT_SIZE_BODY);
+        cell.setPadding(TABLE_PADDING);
+        cell.setFontSize(TABLE_FONT_SIZE);
         cell.setBold();
 
         return cell;
@@ -519,8 +516,8 @@ public class Copyright {
      */
     private Cell getTableCell(final String text) {
         Cell cell = new Cell(1, 1).add(new Paragraph(text));
-        cell.setPadding(3);
-        cell.setFontSize(FONT_SIZE_BODY);
+        cell.setPadding(TABLE_PADDING);
+        cell.setFontSize(TABLE_FONT_SIZE);
 
         return cell;
     }
@@ -552,6 +549,8 @@ public class Copyright {
                 }
             }
         }
+
+        LOGGER.trace("{}, no title found", file.getName());
 
         return "";
     }

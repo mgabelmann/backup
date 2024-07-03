@@ -65,6 +65,12 @@ public class AlphanumComparator implements Comparator<FileInfo> {
         return chunk.toString();
     }
 
+    /**
+     * Compare two objects.
+     * @param f1 the first object to be compared.
+     * @param f2 the second object to be compared.
+     * @return value
+     */
     public int compare(FileInfo f1, FileInfo f2) {
         String s1 = f1.getName();
         String s2 = f2.getName();
