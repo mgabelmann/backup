@@ -1,4 +1,4 @@
-# Backup
+# Photo Utilities
 Useful tools for backing up and performing other Photography related processes.
 
 ## Copyright
@@ -13,7 +13,10 @@ This tool generates everything required to register:
 
 The titles are extracted from the JPG files in the DIR used above. Adobe Photoshop
 or Lightroom can be used to add this value. The JPG images in the DIR must be 
-smaller (eg: 640 pixels in the longest dimension).
+smaller (eg: 640 pixels in the longest dimension). 
+
+If a JPG file does not contain a title then the filename is used. While you don't need 
+to add titles for each of your images it is recommended.
 
     java mgabelmann.photo.workflow.io.Backup <DIR> <CASENUMBER> <PUBLISHED> 
 
