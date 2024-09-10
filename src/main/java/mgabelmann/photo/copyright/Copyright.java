@@ -259,10 +259,11 @@ public class Copyright {
                 title = this.getTitle(file);
 
             } catch (ImagingException ie) {
-                LOGGER.warn("unable to get title from file {}, using filename for title. error is {}", file.getName(), ie.getMessage());
-                printStackTrace(Level.WARN, ie);
+                String name = file.getName();
+                title = name.lastIndexOf(".") == -1 ? name : name.substring(0, name.lastIndexOf("."));
 
-                title = file.getName();
+                LOGGER.warn("unable to get title from file {}, using {} for title. error is {}", file.getName(), title, ie.getMessage());
+                printStackTrace(Level.WARN, ie);
             }
 
             fileInfos.add(new FileInfo(fileName, title, dateTime));
@@ -274,6 +275,11 @@ public class Copyright {
         }
     }
 
+    /**
+     * Print stack trace to the log.
+     * @param level log level
+     * @param ex stacktrace
+     */
     void printStackTrace(Level level, Throwable ex) {
         try (Writer buf = new StringWriter(); PrintWriter pw = new PrintWriter(buf)) {
             ex.printStackTrace(pw);
