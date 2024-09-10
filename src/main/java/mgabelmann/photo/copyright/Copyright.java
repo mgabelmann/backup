@@ -11,6 +11,7 @@ import com.itextpdf.layout.element.Table;
 import mgabelmann.photo.workflow.exception.WorkflowException;
 
 import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.ImagingException;
 import org.apache.commons.imaging.common.GenericImageMetadata;
 import org.apache.commons.imaging.common.ImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
@@ -18,10 +19,14 @@ import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -246,14 +251,36 @@ public class Copyright {
     public void processFile(final File file) throws WorkflowException {
         try {
             final String fileName = this.getFilename(file);
+
             final LocalDateTime dateTime = this.getFileDateTime(file, false);
-            final String title = this.getTitle(file);
+            String title;
+
+            try {
+                title = this.getTitle(file);
+
+            } catch (ImagingException ie) {
+                LOGGER.warn("unable to get title from file {}, using filename for title. error is {}", file.getName(), ie.getMessage());
+                printStackTrace(Level.WARN, ie);
+
+                title = file.getName();
+            }
 
             fileInfos.add(new FileInfo(fileName, title, dateTime));
             LOGGER.debug("added: {}", file.getName());
 
         } catch (IOException ie) {
-            throw new WorkflowException(ie);
+            printStackTrace(Level.INFO, ie);
+            throw new WorkflowException("error processing " + file.getName() + ", " + ie.getMessage(), ie);
+        }
+    }
+
+    void printStackTrace(Level level, Throwable ex) {
+        try (Writer buf = new StringWriter(); PrintWriter pw = new PrintWriter(buf)) {
+            ex.printStackTrace(pw);
+            LOGGER.atLevel(level).log(buf.toString());
+
+        } catch (IOException ie) {
+            LOGGER.warn("error printing stacktrace. msg={}", ie.getMessage());
         }
     }
 
