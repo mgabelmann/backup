@@ -37,9 +37,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -61,20 +63,19 @@ public class Copyright {
 
     private static final int TABLE_FONT_SIZE = 8;
     private static final int TABLE_PADDING = 3;
-
     private static final int BODY_FONT_SIZE = 10;
 
+    public static final String FIELD_DELIMITER = ",";
+    public static final String FIELD_SEPARATOR = FIELD_DELIMITER + " ";
+
     /** Directory to process. */
-    private final Path directory;
+    private Path directory;
 
     /** Copyright case number. */
-    private final String caseNumber;
+    private String caseNumber;
 
     /** Is group published or unpublished. */
-    private final boolean published;
-
-    /** Service for scanning files. */
-    //private final ExecutorService service;
+    private boolean published;
 
     /** Results of scanning files. */
     private final List<FileInfo> fileInfos;
@@ -90,19 +91,9 @@ public class Copyright {
             final String caseNumber,
             final boolean published) {
 
-        if (path == null) {
-            throw new IllegalArgumentException("directory is required");
-
-        } else if (!Files.isDirectory(path)) {
-            throw new IllegalArgumentException("directory is not a directory");
-
-        } else if (caseNumber == null || caseNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("case number is required");
-        }
-
-        this.directory = path;
-        this.caseNumber = caseNumber;
-        this.published = published;
+        this.setDirectory(path);
+        this.setCaseNumber(caseNumber);
+        this.setPublished(published);
 
         this.fileInfos = new ArrayList<>();
     }
@@ -114,6 +105,7 @@ public class Copyright {
     public static void main(final String[] args) {
         if (args.length != 3) {
             System.err.println("invalid number of arguments");
+            System.out.println("Usage: <directory> <caseNumber> <published>");
             System.exit(1);
         }
 
@@ -136,8 +128,27 @@ public class Copyright {
         return caseNumber;
     }
 
+    public void setCaseNumber(final String caseNumber) {
+        if (caseNumber == null || caseNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("case number is required");
+        }
+
+        this.caseNumber = caseNumber;
+    }
+
     public Path getDirectory() {
         return directory;
+    }
+
+    public void setDirectory(final Path directory) {
+        if (directory == null) {
+            throw new IllegalArgumentException("directory is required");
+
+        } else if (!Files.isDirectory(directory)) {
+            throw new IllegalArgumentException("directory is not a directory");
+        }
+
+        this.directory = directory;
     }
 
     public List<FileInfo> getFileInfos() {
@@ -146,6 +157,10 @@ public class Copyright {
 
     public boolean isPublished() {
         return published;
+    }
+
+    public void setPublished(final boolean published) {
+        this.published = published;
     }
 
     /**
@@ -188,21 +203,21 @@ public class Copyright {
             }
         }
 
-        //try {
+        try {
             Path manifestFilename = this.getManifestFilename(directory, directory.getFileName().toString());
-           /*
+
             {
                 //generate manifest file
-                StringBuilder sb1 = this.getManifest(dateRecords);
-                this.writeTextFile(sb1.toString(), manifestFilename);
+                String manifest = this.getManifest(dateRecords);
+                this.writeTextFile(manifest, manifestFilename);
             }
 
             {
                 //generate titles file
                 List<String> titles = this.getAllTitles(titleRecords);
                 String titlesStr = titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
-                Path titlesFilename = this.getTitlesFilename(directory);
 
+                Path titlesFilename = this.getTitlesFilename(directory);
                 this.writeTextFile(titlesStr, titlesFilename);
             }
 
@@ -215,12 +230,12 @@ public class Copyright {
             {
                 //create ZIP file of ALL files processed/created except titles
                 Path zipFilename = this.getZipFilename(directory, directory.getFileName().toString());
-                this.writeZipFile(dateRecords, manifestFilename, zipFilename);
+//                this.writeZipFile(dateRecords, manifestFilename, zipFilename);
             }
 
         } catch (IOException ie) {
             throw new WorkflowException(ie);
-        }*/
+        }
 
         LOGGER.info("copyright - finished");
     }
@@ -229,7 +244,7 @@ public class Copyright {
      * Add records, but only if they do not already exist.
      * @param records
      */
-    public void add(List<FileInfo> records) {
+    public void add(final List<FileInfo> records) {
         List<FileInfo> recordsToAdd = records.stream().filter(a->!fileInfos.contains(a)).toList();
         fileInfos.addAll(recordsToAdd);
     }
@@ -325,7 +340,7 @@ public class Copyright {
         final String filePrefix = published ? "p" : "u";
         final String fileName = (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
 
-        return Paths.get(base.getParent().toString(), fileName);
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
@@ -335,7 +350,7 @@ public class Copyright {
     Path getPDFFilename(final Path base, final String fileBase) {
         final String fileName = (fileBase + ".pdf").toLowerCase();
 
-        return Paths.get(base.getParent().toString(), fileName);
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
@@ -345,7 +360,7 @@ public class Copyright {
     Path getZipFilename(final Path base, final String fileBase) {
         final String fileName = (fileBase + ".zip").toLowerCase();
 
-        return Paths.get(base.getParent().toString(), fileName);
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
@@ -355,7 +370,7 @@ public class Copyright {
     Path getTitlesFilename(final Path base) {
         final String fileName = "_titles.txt";
 
-        return Paths.get(base.getParent().toString(), fileName);
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
@@ -363,7 +378,7 @@ public class Copyright {
      * @param dateRecords sorted records
      * @return manifest contents
      */
-    StringBuilder getManifest(final Map<LocalDate, List<FileInfo>> dateRecords) {
+    String getManifest(final Map<LocalDate, List<FileInfo>> dateRecords) {
         StringBuilder manifest = new StringBuilder();
 
         int imageNumber = 0;
@@ -373,12 +388,12 @@ public class Copyright {
         manifest.append("Group Registration of ").append(publicationType).append(" Photographs").append(System.lineSeparator());;
         manifest.append("This is a complete list of photographs for case number: ").append(caseNumber).append(System.lineSeparator());
 
+        final List<String> titles = new ArrayList<>(Arrays.asList("Photograph #", "Filename of Photograph", "Title of Photograph"));
         if (published) {
-            manifest.append("Photograph #, Filename of Photograph, Title of Photograph, Date of Publication").append(System.lineSeparator());
-
-        } else {
-            manifest.append("Photograph #, Filename of Photograph, Title of Photograph").append(System.lineSeparator());;
+            titles.add("Date of Publication");
         }
+
+        manifest.append(String.join(FIELD_SEPARATOR, titles)).append(System.lineSeparator());
 
         for (Map.Entry<LocalDate, List<FileInfo>> entry : dateRecords.entrySet()) {
             List<FileInfo> values = entry.getValue();
@@ -387,12 +402,12 @@ public class Copyright {
             values.sort(new AlphanumComparator());
 
             for (FileInfo fileInfo : values) {
-                manifest.append(++imageNumber).append(", ");
-                manifest.append(fileInfo.getFilename()).append(", ");
+                manifest.append(++imageNumber).append(FIELD_SEPARATOR);
+                manifest.append(fileInfo.getFilename()).append(FIELD_SEPARATOR);
                 manifest.append(fileInfo.getName());
 
                 if (published) {
-                    manifest.append(", ");
+                    manifest.append(FIELD_SEPARATOR);
                     manifest.append(fileInfo.getDate());
                 }
 
@@ -400,7 +415,7 @@ public class Copyright {
             }
         }
 
-        return manifest;
+        return manifest.toString();
     }
 
     /**
@@ -495,7 +510,7 @@ public class Copyright {
      * @param dateRecords sorted records
      * @throws WorkflowException error
      */
-    void writePdfFile(final Map<LocalDate, List<FileInfo>> dateRecords, Path pdfPath) throws WorkflowException {
+    void writePdfFile(final Map<LocalDate, List<FileInfo>> dateRecords, final Path pdfPath) throws WorkflowException {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
         try {

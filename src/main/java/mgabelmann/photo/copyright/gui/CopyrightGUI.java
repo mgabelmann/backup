@@ -6,7 +6,17 @@ import mgabelmann.photo.workflow.exception.WorkflowException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
@@ -117,6 +127,11 @@ public class CopyrightGUI extends JFrame {
         this.panel1.setBorder(new EmptyBorder(5,5,5,5));
         this.panel1.add(button2, BorderLayout.EAST);
 
+        {
+            JPanel panel2 = new JPanel();
+
+        }
+
         this.getContentPane().add(scrollPane1, BorderLayout.CENTER);
         this.getContentPane().add(this.panel1, BorderLayout.SOUTH);
 
@@ -133,7 +148,6 @@ public class CopyrightGUI extends JFrame {
     private void add(final boolean directoriesOnly) {
         //set to users default directory
         JFileChooser chooser = new JFileChooser();
-        //chooser.setDialogTitle("Choose file or directory");
 
         if (directoriesOnly) {
             chooser.setDialogTitle("Choose a directory");

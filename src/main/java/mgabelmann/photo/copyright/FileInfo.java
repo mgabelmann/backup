@@ -1,5 +1,8 @@
 package mgabelmann.photo.copyright;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -10,6 +13,8 @@ import java.util.Objects;
  * Contains information about a file.
  */
 public final class FileInfo implements Serializable, Comparable<FileInfo> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileInfo.class);
+
     private final Path path;
     private final LocalDateTime dateTime;
 
@@ -51,7 +56,17 @@ public final class FileInfo implements Serializable, Comparable<FileInfo> {
     }
 
     public void setTitle(final String title) {
-        this.title = title == null ? "" : title;
+        if (title == null) {
+            this.title = "";
+
+        } else if (title.contains(Copyright.FIELD_DELIMITER)) {
+            //need to remove , otherwise creating CSV file has issues
+            LOGGER.info("removed '{}' from {}, title is {}", Copyright.FIELD_SEPARATOR, path.getFileName().toString(), title);
+            this.title = title.replace(Copyright.FIELD_DELIMITER, "");
+
+        } else {
+            this.title = title;
+        }
     }
 
     public LocalDate getDate() {
