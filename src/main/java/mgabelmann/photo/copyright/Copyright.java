@@ -68,6 +68,8 @@ public class Copyright {
     public static final String FIELD_DELIMITER = ",";
     public static final String FIELD_SEPARATOR = FIELD_DELIMITER + " ";
 
+    public static final String DATE_FORMAT_YEARMONTH = "yyyy-MM";
+
     /** Directory to process. */
     private Path directory;
 
@@ -191,7 +193,7 @@ public class Copyright {
                 dateRecords.put(date, infos);
             }
 
-            String dateStr = DateTimeFormatter.ofPattern("yyyy-MM").format(date);
+            String dateStr = DateTimeFormatter.ofPattern(DATE_FORMAT_YEARMONTH).format(date);
 
             if (titleRecords.containsKey(dateStr)) {
                 titleRecords.get(dateStr).add(fileInfo);
@@ -230,7 +232,7 @@ public class Copyright {
             {
                 //create ZIP file of ALL files processed/created except titles
                 Path zipFilename = this.getZipFilename(directory, directory.getFileName().toString());
-//                this.writeZipFile(dateRecords, manifestFilename, zipFilename);
+                this.writeZipFile(dateRecords, manifestFilename, zipFilename);
             }
 
         } catch (IOException ie) {
@@ -483,21 +485,20 @@ public class Copyright {
      * @param zipPath path to zip file
      * @throws IOException error
      */
-    //FIXME: use dateRecords or fileInfos?
     void writeZipFile(final Map<LocalDate, List<FileInfo>> dateRecords, final Path manifestPath, final Path zipPath) throws IOException {
         List<Path> zipPaths = new ArrayList<>();
         zipPaths.add(manifestPath);
 
         for (Map.Entry<LocalDate, List<FileInfo>> items : dateRecords.entrySet()) {
             for (FileInfo item : items.getValue()) {
-                Path p = Paths.get(zipPath.toString(), item.getFilename());
-                zipPaths.add(p);
+                zipPaths.add(item.getPath());
             }
         }
 
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipPath.toFile()))) {
             for (Path filePath : zipPaths) {
-                zipOut.putNextEntry(new ZipEntry(filePath.toString()));
+                Path newPath = Paths.get(filePath.getFileName().toString());
+                zipOut.putNextEntry(new ZipEntry(newPath.toString()));
                 Files.copy(filePath, zipOut);
             }
         }
@@ -511,7 +512,7 @@ public class Copyright {
      * @throws WorkflowException error
      */
     void writePdfFile(final Map<LocalDate, List<FileInfo>> dateRecords, final Path pdfPath) throws WorkflowException {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_YEARMONTH);
 
         try {
             PdfWriter writer = new PdfWriter(pdfPath.toFile());

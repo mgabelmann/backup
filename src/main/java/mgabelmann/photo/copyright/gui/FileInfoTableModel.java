@@ -8,7 +8,6 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -16,7 +15,7 @@ public class FileInfoTableModel extends AbstractTableModel {
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(FileInfoTableModel.class);
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DATE_FORMAT_YEARMONTHDAY = "yyyy-MM-dd";
 
     private final List<FileInfo> data;
 
@@ -25,10 +24,10 @@ public class FileInfoTableModel extends AbstractTableModel {
     private final DateTimeFormatter formatter;
 
 
-    public FileInfoTableModel() {
-        this.data = new ArrayList<>();
-        this.formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-    }
+//    public FileInfoTableModel(final List<FileInfo> data) {
+//        this.data = data;
+//        this.formatter = DateTimeFormatter.ofPattern(DATE_FORMAT_YEARMONTHDAY);
+//    }
 
     public FileInfoTableModel(final List<FileInfo> data, final DateTimeFormatter formatter) {
         this.data = data;

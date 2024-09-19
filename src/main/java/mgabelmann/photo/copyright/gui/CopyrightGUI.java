@@ -53,6 +53,7 @@ public class CopyrightGUI extends JFrame {
     private JTable table1;
     private JButton button2;
     private FileInfoTableModel tableModel1;
+    private CopyrightOptionsPanel cop;
 
 
     /** Quick and dirty initialization, with defaults. */
@@ -95,7 +96,7 @@ public class CopyrightGUI extends JFrame {
         this.editMenu.add(this.addDirectoryMenuItem);
         this.editMenu.add(this.removeMenuItem);
 
-        this.tableModel1 = new FileInfoTableModel(copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT));
+        this.tableModel1 = new FileInfoTableModel(copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT_YEARMONTHDAY));
 
         //NOTE: add some test data, temporary
         this.tableModel1.add(new FileInfo(Path.of("file_20240502.jpg"), "title3", LocalDateTime.now()));
@@ -132,6 +133,9 @@ public class CopyrightGUI extends JFrame {
 
         }
 
+        this.cop = new CopyrightOptionsPanel(copyright);
+
+        this.getContentPane().add(cop, BorderLayout.NORTH);
         this.getContentPane().add(scrollPane1, BorderLayout.CENTER);
         this.getContentPane().add(this.panel1, BorderLayout.SOUTH);
 
@@ -200,6 +204,8 @@ public class CopyrightGUI extends JFrame {
                 this.updateUI();
             }
         }
+
+        this.cop.updateImages();
     }
 
     /**
@@ -218,6 +224,8 @@ public class CopyrightGUI extends JFrame {
 
             this.updateUI();
         }
+
+        this.cop.updateImages();
     }
 
     /**
