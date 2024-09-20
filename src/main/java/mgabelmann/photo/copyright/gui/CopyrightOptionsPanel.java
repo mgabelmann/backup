@@ -6,7 +6,12 @@ import mgabelmann.photo.copyright.Copyright;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -19,7 +24,6 @@ public class CopyrightOptionsPanel extends JPanel {
     private final Copyright copyright;
 
     private final JTextField textField1;
-    private final JButton browseButton;
     private final JTextField textField2;
     private final JCheckBox checkBox1;
     private final JTextField textField3;
@@ -55,7 +59,7 @@ public class CopyrightOptionsPanel extends JPanel {
         textField3.setColumns(5);
         textField3.setEditable(false);
         this.add(textField3, cc.xy(3, 7, CellConstraints.LEFT, CellConstraints.DEFAULT));
-        browseButton = new JButton();
+        JButton browseButton = new JButton();
         browseButton.setText("Browse");
         this.add(browseButton, cc.xy(5, 1));
 
@@ -73,12 +77,6 @@ public class CopyrightOptionsPanel extends JPanel {
                 copyright.setCaseNumber(textField2.getText());
             }
         });
-
-        this.updateImages();
-    }
-
-    public void updateImages() {
-        textField3.setText("" + copyright.getFileInfos().size());
     }
 
     private void browse() {
@@ -100,5 +98,18 @@ public class CopyrightOptionsPanel extends JPanel {
         copyright.setPublished(status);
     }
 
+    /**
+     * Update the UI based on values in backing object.
+     */
+    public void update() {
+        this.textField1.setText(copyright.getDirectory().toString());
+        this.textField2.setText(copyright.getCaseNumber());
+        this.checkBox1.setSelected(copyright.isPublished());
+        this.updateImageCount();
+    }
+
+    public void updateImageCount() {
+        textField3.setText("" + copyright.getFileInfos().size());
+    }
 
 }

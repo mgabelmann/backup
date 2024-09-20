@@ -21,10 +21,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -56,9 +57,15 @@ public class CopyrightGUI extends JFrame {
     private CopyrightOptionsPanel cop;
 
 
+//FIXME: if no title given uses filename instead of just filename without extension
+
+
     /** Quick and dirty initialization, with defaults. */
     public static void main(final String[] args) {
-        Copyright c = new Copyright(Paths.get(System.getProperty("user.home")), "xxx", false);
+        Path directory = Paths.get(System.getProperty("user.home"));
+        String caseNumber = "xxx";
+
+        Copyright c = new Copyright(directory, caseNumber, false);
         CopyrightGUI gui = new CopyrightGUI(c);
     }
 
@@ -99,9 +106,11 @@ public class CopyrightGUI extends JFrame {
         this.tableModel1 = new FileInfoTableModel(copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT_YEARMONTHDAY));
 
         //NOTE: add some test data, temporary
-        this.tableModel1.add(new FileInfo(Path.of("file_20240502.jpg"), "title3", LocalDateTime.now()));
-        this.tableModel1.add(new FileInfo(Path.of("file_20240514.jpg"), "", LocalDateTime.now().minusDays(10)));
-        this.tableModel1.add(new FileInfo(Path.of("file_20240523.jpg"), "title2", LocalDateTime.now().minusDays(15)));
+//        {
+//            this.tableModel1.add(new FileInfo(Path.of("file_20240502.jpg"), "title3", LocalDateTime.now()));
+//            this.tableModel1.add(new FileInfo(Path.of("file_20240514.jpg"), "", LocalDateTime.now().minusDays(10)));
+//            this.tableModel1.add(new FileInfo(Path.of("file_20240523.jpg"), "title2", LocalDateTime.now().minusDays(15)));
+//        }
 
         this.table1 = new JTable();
         this.table1.setFillsViewportHeight(true);
@@ -128,16 +137,39 @@ public class CopyrightGUI extends JFrame {
         this.panel1.setBorder(new EmptyBorder(5,5,5,5));
         this.panel1.add(button2, BorderLayout.EAST);
 
-        {
-            JPanel panel2 = new JPanel();
-
-        }
-
         this.cop = new CopyrightOptionsPanel(copyright);
 
         this.getContentPane().add(cop, BorderLayout.NORTH);
         this.getContentPane().add(scrollPane1, BorderLayout.CENTER);
         this.getContentPane().add(this.panel1, BorderLayout.SOUTH);
+
+        {
+            //contextual menu that emulates Edit menu items
+            ContextualMenu cm = new ContextualMenu();
+            table1.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if (e.getButton() == MouseEvent.BUTTON3) {
+                        cm.show(table1, e.getX(), e.getY());
+                    }
+                }
+            });
+
+            JMenuItem cmAddFile = new JMenuItem("Add File");
+            cmAddFile.addActionListener(e -> add(false));
+            //cmAddFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+            cm.add(cmAddFile);
+
+            JMenuItem cmAddDirectory = new JMenuItem("Add Directory");
+            cmAddDirectory.addActionListener(e -> add(true));
+            cm.add(cmAddDirectory);
+
+            JMenuItem cmRemove = new JMenuItem("Remove File(s)");
+            cmRemove.addActionListener(e -> remove());
+            cm.add(cmRemove);
+        }
+
+        this.cop.update();
 
         //finish initialization and display UI
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -201,11 +233,11 @@ public class CopyrightGUI extends JFrame {
                 }
 
                 //update and redraw table UI
-                this.updateUI();
+                this.update();
             }
         }
 
-        this.cop.updateImages();
+        this.cop.update();
     }
 
     /**
@@ -222,10 +254,13 @@ public class CopyrightGUI extends JFrame {
                 LOGGER.debug("removed {}", fi);
             }
 
-            this.updateUI();
+            //unselect rows so we don't reselect different rows
+            this.table1.clearSelection();
+
+            this.update();
+            this.cop.updateImageCount();
         }
 
-        this.cop.updateImages();
     }
 
     /**
@@ -235,10 +270,9 @@ public class CopyrightGUI extends JFrame {
         LOGGER.debug("process");
 
         try {
-            //copyright.process();
-            throw new WorkflowException("Processing failed");
+            copyright.process();
 
-        } catch (WorkflowException we) {
+        } catch (final WorkflowException we) {
             LOGGER.error(we.getMessage());
             JOptionPane.showMessageDialog(this, we.getMessage(), "Error Message", JOptionPane.ERROR_MESSAGE);
         }
@@ -247,7 +281,7 @@ public class CopyrightGUI extends JFrame {
     /**
      * Update the UI.
      */
-    private void updateUI() {
+    private void update() {
         tableModel1.fireTableDataChanged();
         table1.repaint();
         scrollPane1.updateUI();

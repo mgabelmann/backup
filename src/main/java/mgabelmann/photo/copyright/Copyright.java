@@ -319,11 +319,15 @@ public class Copyright {
                 title = this.getTitle(file);
 
             } catch (ImagingException ie) {
-                final int i = fileName.lastIndexOf('.');
-                title = i == -1 ? fileName : fileName.substring(0, i);
+                title = null;
 
                 printStackTrace(Level.DEBUG, ie);
-                LOGGER.warn("unable to get title from file {}, using {} for title. error is {}", fileName, title, ie.getMessage());
+                LOGGER.warn("unable to get title from file {}, error is {}", fileName, ie.getMessage());
+            }
+
+            if (title == null || title.isEmpty()) {
+                final int i = fileName.lastIndexOf('.');
+                title = i == -1 ? fileName : fileName.substring(0, i);
             }
 
             return new FileInfo(file, title, dateTime);
