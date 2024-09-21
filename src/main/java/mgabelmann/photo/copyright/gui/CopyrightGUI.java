@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -39,6 +40,8 @@ public class CopyrightGUI extends JFrame {
 
     /** Underlying class that does all the work. */
     private final transient Copyright copyright;
+
+    private final ResourceBundle resourceBundle;
 
     //TODO: add components
     private JMenuBar menuBar;
@@ -57,9 +60,6 @@ public class CopyrightGUI extends JFrame {
     private CopyrightOptionsPanel cop;
 
 
-//FIXME: if no title given uses filename instead of just filename without extension
-
-
     /** Quick and dirty initialization, with defaults. */
     public static void main(final String[] args) {
         Path directory = Paths.get(System.getProperty("user.home"));
@@ -75,6 +75,7 @@ public class CopyrightGUI extends JFrame {
      */
     public CopyrightGUI(final Copyright copyright) {
         this.copyright = copyright;
+        this.resourceBundle = copyright.getResourceBundle();
 
         this.init();
     }
@@ -83,27 +84,27 @@ public class CopyrightGUI extends JFrame {
      * Initialize GUI components, listeners, etc.
      */
     private void init() {
-        this.exitMenuItem = new JMenuItem("Exit");
+        this.exitMenuItem = new JMenuItem(getResourceByKey("menu.file.exit"));
         this.exitMenuItem.addActionListener(e -> System.exit(0));
 
-        this.addFileMenuItem = new JMenuItem("Add File");
+        this.addFileMenuItem = new JMenuItem(getResourceByKey("menu.edit.addfile"));
         this.addFileMenuItem.addActionListener(e -> add(false));
 
-        this.addDirectoryMenuItem = new JMenuItem("Add Directory");
+        this.addDirectoryMenuItem = new JMenuItem(getResourceByKey("menu.edit.adddir"));
         this.addDirectoryMenuItem.addActionListener(e -> add(true));
 
-        this.removeMenuItem = new JMenuItem("Remove File(s)");
+        this.removeMenuItem = new JMenuItem(getResourceByKey("menu.edit.remove"));
         this.removeMenuItem.addActionListener(e -> remove());
 
-        this.fileMenu = new JMenu("File");
+        this.fileMenu = new JMenu(getResourceByKey("menu.file"));
         this.fileMenu.add(this.exitMenuItem);
 
-        this.editMenu = new JMenu("Edit");
+        this.editMenu = new JMenu(getResourceByKey("menu.edit"));
         this.editMenu.add(this.addFileMenuItem);
         this.editMenu.add(this.addDirectoryMenuItem);
         this.editMenu.add(this.removeMenuItem);
 
-        this.tableModel1 = new FileInfoTableModel(copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT_YEARMONTHDAY));
+        this.tableModel1 = new FileInfoTableModel(resourceBundle, copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT_YEARMONTHDAY));
 
         //NOTE: add some test data, temporary
 //        {
@@ -129,7 +130,7 @@ public class CopyrightGUI extends JFrame {
         this.menuBar.add(this.editMenu);
         this.setJMenuBar(this.menuBar);
 
-        this.button2 = new JButton("Process");
+        this.button2 = new JButton(getResourceByKey("button.process"));
         this.button2.addActionListener(e -> this.process());
 
         this.panel1 = new JPanel();
@@ -155,16 +156,16 @@ public class CopyrightGUI extends JFrame {
                 }
             });
 
-            JMenuItem cmAddFile = new JMenuItem("Add File");
+            JMenuItem cmAddFile = new JMenuItem(getResourceByKey("menu.edit.addfile"));
             cmAddFile.addActionListener(e -> add(false));
             //cmAddFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
             cm.add(cmAddFile);
 
-            JMenuItem cmAddDirectory = new JMenuItem("Add Directory");
+            JMenuItem cmAddDirectory = new JMenuItem(getResourceByKey("menu.edit.adddir"));
             cmAddDirectory.addActionListener(e -> add(true));
             cm.add(cmAddDirectory);
 
-            JMenuItem cmRemove = new JMenuItem("Remove File(s)");
+            JMenuItem cmRemove = new JMenuItem(getResourceByKey("menu.edit.remove"));
             cmRemove.addActionListener(e -> remove());
             cm.add(cmRemove);
         }
@@ -177,6 +178,10 @@ public class CopyrightGUI extends JFrame {
         this.setVisible(true);
     }
 
+    private String getResourceByKey(final String key) {
+        return resourceBundle.getString(key);
+    }
+
     /**
      * Add a new file or directory.
      * @param directoriesOnly directories or file
@@ -186,11 +191,11 @@ public class CopyrightGUI extends JFrame {
         JFileChooser chooser = new JFileChooser();
 
         if (directoriesOnly) {
-            chooser.setDialogTitle("Choose a directory");
+            chooser.setDialogTitle(getResourceByKey("dialog.filechooser.dir"));
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         } else {
-            chooser.setDialogTitle("Choose a file");
+            chooser.setDialogTitle(getResourceByKey("dialog.filechooser.file"));
         }
 
         chooser.setFileFilter(new FileFilter() {
@@ -206,7 +211,7 @@ public class CopyrightGUI extends JFrame {
 
             @Override
             public String getDescription() {
-                return "JPG Images (*.jpg or *.jpeg)";
+                return getResourceByKey("dialog.filechooser.filter");
             }
         });
 
@@ -274,7 +279,7 @@ public class CopyrightGUI extends JFrame {
 
         } catch (final WorkflowException we) {
             LOGGER.error(we.getMessage());
-            JOptionPane.showMessageDialog(this, we.getMessage(), "Error Message", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, we.getMessage(), getResourceByKey("dialog.message.error"), JOptionPane.ERROR_MESSAGE);
         }
     }
 

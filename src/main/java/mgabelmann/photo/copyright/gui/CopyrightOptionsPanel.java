@@ -35,39 +35,39 @@ public class CopyrightOptionsPanel extends JPanel {
         this.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:d:grow,left:4dlu:noGrow,fill:max(d;4px):noGrow", "center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
         this.setBorder(new EmptyBorder(5,5,5,5));
         final JLabel label1 = new JLabel();
-        label1.setText("Directory:");
+        label1.setText(getResourceByKey("panel.label.directory"));
         CellConstraints cc = new CellConstraints();
         this.add(label1, cc.xy(1, 1));
         textField1 = new JTextField();
         textField1.setEditable(false);
         this.add(textField1, cc.xy(3, 1, CellConstraints.FILL, CellConstraints.DEFAULT));
         final JLabel label2 = new JLabel();
-        label2.setText("Case #:");
+        label2.setText(getResourceByKey("panel.label.case"));
         this.add(label2, cc.xy(1, 3));
         textField2 = new JTextField();
         this.add(textField2, cc.xy(3, 3, CellConstraints.FILL, CellConstraints.DEFAULT));
         final JLabel label3 = new JLabel();
-        label3.setText("Published:");
+        label3.setText(getResourceByKey("panel.label.published"));
         this.add(label3, cc.xy(1, 5));
         checkBox1 = new JCheckBox();
         checkBox1.setText("");
         this.add(checkBox1, cc.xy(3, 5));
         final JLabel label4 = new JLabel();
-        label4.setText("Qty:");
+        label4.setText(getResourceByKey("panel.label.quantity"));
         this.add(label4, cc.xy(1, 7));
         textField3 = new JTextField();
         textField3.setColumns(5);
         textField3.setEditable(false);
         this.add(textField3, cc.xy(3, 7, CellConstraints.LEFT, CellConstraints.DEFAULT));
         JButton browseButton = new JButton();
-        browseButton.setText("Browse");
+        browseButton.setText(getResourceByKey("panel.button.browse"));
         this.add(browseButton, cc.xy(5, 1));
 
         //add tooltip text
-        textField1.setToolTipText("Directory where all files are output to");
-        textField2.setToolTipText("Enter US Copyright Case Number");
-        checkBox1.setToolTipText("Published or Unpublished");
-        textField3.setToolTipText("Number of images in submission");
+        textField1.setToolTipText(getResourceByKey("panel.tooltip.directory"));
+        textField2.setToolTipText(getResourceByKey("panel.tooltip.case"));
+        checkBox1.setToolTipText(getResourceByKey("panel.tooltip.published"));
+        textField3.setToolTipText(getResourceByKey("panel.tooltip.quantity"));
 
         //add listeners
         browseButton.addActionListener(e -> browse());
@@ -79,9 +79,13 @@ public class CopyrightOptionsPanel extends JPanel {
         });
     }
 
+    private String getResourceByKey(final String key) {
+        return copyright.getResourceBundle().getString(key);
+    }
+
     private void browse() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Choose a directory");
+        chooser.setDialogTitle(getResourceByKey("dialog.filechooser.dir"));
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         int returnVal = chooser.showOpenDialog(this);

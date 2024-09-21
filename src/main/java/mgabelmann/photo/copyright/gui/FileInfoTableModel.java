@@ -9,6 +9,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ResourceBundle;
 
 
 public class FileInfoTableModel extends AbstractTableModel {
@@ -23,15 +24,17 @@ public class FileInfoTableModel extends AbstractTableModel {
 
     private final DateTimeFormatter formatter;
 
+    private final ResourceBundle resourceBundle;
 
-//    public FileInfoTableModel(final List<FileInfo> data) {
-//        this.data = data;
-//        this.formatter = DateTimeFormatter.ofPattern(DATE_FORMAT_YEARMONTHDAY);
-//    }
 
-    public FileInfoTableModel(final List<FileInfo> data, final DateTimeFormatter formatter) {
+    public FileInfoTableModel(final ResourceBundle resourceBundle, List<FileInfo> data, final DateTimeFormatter formatter) {
+        this.resourceBundle = resourceBundle;
         this.data = data;
         this.formatter = formatter;
+    }
+
+    private String getResourceByKey(final String key) {
+        return resourceBundle.getString(key);
     }
 
     public void add(final FileInfo fileInfo) {
@@ -61,10 +64,10 @@ public class FileInfoTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int columnIndex) {
         return switch (columnIndex) {
-            case 0 -> "File Name";
-            case 1 -> "Title";
-            case 2 -> "Date";
-            default -> "Unknown";
+            case 0 -> getResourceByKey("table.header.file");
+            case 1 -> getResourceByKey("table.header.title");
+            case 2 -> getResourceByKey("table.header.date");
+            default -> getResourceByKey("table.header.other");
         };
     }
 

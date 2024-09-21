@@ -1,7 +1,6 @@
 package mgabelmann.photo.workflow.gui;
 
 import java.awt.GridLayout;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -10,7 +9,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
 
 import mgabelmann.photo.workflow.HashType;
 import mgabelmann.photo.workflow.PhotoManifest;

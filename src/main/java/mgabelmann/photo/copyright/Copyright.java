@@ -39,7 +39,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,6 +72,9 @@ public class Copyright {
 
     public static final String DATE_FORMAT_YEARMONTH = "yyyy-MM";
 
+    private final ResourceBundle resourceBundle;
+    private final ResourceBundle outputBundle;
+
     /** Directory to process. */
     private Path directory;
 
@@ -98,6 +103,8 @@ public class Copyright {
         this.setPublished(published);
 
         this.fileInfos = new ArrayList<>();
+        this.resourceBundle = ResourceBundle.getBundle("language", Locale.getDefault());
+        this.outputBundle = ResourceBundle.getBundle("output");
     }
 
     /**
@@ -132,7 +139,7 @@ public class Copyright {
 
     public void setCaseNumber(final String caseNumber) {
         if (caseNumber == null || caseNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("case number is required");
+            throw new IllegalArgumentException(getResourceByKey("application.error.casenumber.required"));
         }
 
         this.caseNumber = caseNumber;
@@ -144,10 +151,10 @@ public class Copyright {
 
     public void setDirectory(final Path directory) {
         if (directory == null) {
-            throw new IllegalArgumentException("directory is required");
+            throw new IllegalArgumentException(getResourceByKey("application.error.directory.required"));
 
         } else if (!Files.isDirectory(directory)) {
-            throw new IllegalArgumentException("directory is not a directory");
+            throw new IllegalArgumentException(getResourceByKey("application.error.directory.notadir"));
         }
 
         this.directory = directory;
@@ -165,13 +172,25 @@ public class Copyright {
         this.published = published;
     }
 
+    public ResourceBundle getResourceBundle() {
+        return resourceBundle;
+    }
+
+    private String getResourceByKey(final String key) {
+        return resourceBundle.getString(key);
+    }
+
+    private String getOutputByKey(final String key) {
+        return outputBundle.getString(key);
+    }
+
     /**
      * Call this method once all files are collected.
      * @throws WorkflowException
      */
     public void process() throws WorkflowException {
         if (fileInfos.size() > IMAGES_PER_GROUP_REGISTRATION_MAX) {
-            throw new WorkflowException("Too many images, max image count for bulk registration is: " + IMAGES_PER_GROUP_REGISTRATION_MAX);
+            throw new WorkflowException(getResourceByKey("application.error.toomany") + IMAGES_PER_GROUP_REGISTRATION_MAX);
 
         } else {
             LOGGER.info("found {} images to process", fileInfos.size());
@@ -334,7 +353,7 @@ public class Copyright {
 
         } catch (IOException ie) {
             printStackTrace(Level.DEBUG, ie);
-            throw new WorkflowException("error processing " + file.getFileName().toString() + ", " + ie.getMessage(), ie);
+            throw new WorkflowException(getResourceByKey("application.error.file.get") + file.getFileName().toString() + ", " + ie.getMessage(), ie);
         }
     }
 
@@ -389,14 +408,14 @@ public class Copyright {
 
         int imageNumber = 0;
 
-        String publicationType = published ? "Published" : "Unpublished";
+        String publicationType = published ? getOutputByKey("type.published") : getOutputByKey("type.unpublished");
 
-        manifest.append("Group Registration of ").append(publicationType).append(" Photographs").append(System.lineSeparator());;
-        manifest.append("This is a complete list of photographs for case number: ").append(caseNumber).append(System.lineSeparator());
+        manifest.append(getOutputByKey("title.line1.1")).append(publicationType).append(getOutputByKey("title.line1.2")).append(System.lineSeparator());
+        manifest.append(getOutputByKey("title.line2.1")).append(caseNumber).append(System.lineSeparator());
 
-        final List<String> titles = new ArrayList<>(Arrays.asList("Photograph #", "Filename of Photograph", "Title of Photograph"));
+        final List<String> titles = new ArrayList<>(Arrays.asList(getOutputByKey("table.title.1"), getOutputByKey("table.title.2"), getOutputByKey("table.title.3")));
         if (published) {
-            titles.add("Date of Publication");
+            titles.add(getOutputByKey("table.title.4"));
         }
 
         manifest.append(String.join(FIELD_SEPARATOR, titles)).append(System.lineSeparator());
@@ -529,22 +548,22 @@ public class Copyright {
             FooterEventHandler footerHandler = new FooterEventHandler();
             pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
 
-            String publicationType = published ? "Published" : "Unpublished";
+            String publicationType = published ? getOutputByKey("type.published") : getOutputByKey("type.unpublished");
             int columns = published ? 4 : 3;
 
-            Paragraph p1 = new Paragraph("Group Registration of " + publicationType + " Photographs" + System.lineSeparator());
-            p1.add("This is a complete list of photographs for case number: " + caseNumber + System.lineSeparator());
+            Paragraph p1 = new Paragraph(getOutputByKey("title.line1.1") + publicationType + getOutputByKey("title.line1.2") + System.lineSeparator());
+            p1.add(getOutputByKey("title.line2.1") + caseNumber + System.lineSeparator());
             p1.setFontSize(BODY_FONT_SIZE);
             p1.setBold();
             doc.add(p1);
 
             Table table = new Table(columns);
-            table.addCell(this.getTableHeaderCell(60, "Photograph #"));
-            table.addCell(this.getTableHeaderCell(180, "Filename of Photograph"));
-            table.addCell(this.getTableHeaderCell(180, "Title of Photograph"));
+            table.addCell(this.getTableHeaderCell(60, getOutputByKey("table.title.1")));
+            table.addCell(this.getTableHeaderCell(180, getOutputByKey("table.title.2")));
+            table.addCell(this.getTableHeaderCell(180, getOutputByKey("table.title.3")));
 
             if (published) {
-                table.addCell(this.getTableHeaderCell(75, "Date of Publication"));
+                table.addCell(this.getTableHeaderCell(75, getOutputByKey("table.title.4")));
             }
 
             int number = 0;
