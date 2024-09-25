@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Arrays;
@@ -20,12 +21,12 @@ class FileInfoTest {
 
     @BeforeEach
     void setUp() {
-        fileInfo1 = new FileInfo("1.jpg", "f", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
-        fileInfo2 = new FileInfo("2.jpg", "e", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 49, 0));
-        fileInfo3 = new FileInfo("3.jpg", "d", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 48, 0));
-        fileInfo4 = new FileInfo("4.jpg", "c", LocalDateTime.of(2024, Month.JANUARY, 14, 13, 47, 0));
-        fileInfo5 = new FileInfo("5.jpg", "b", LocalDateTime.of(2024, Month.JANUARY, 14, 13, 46, 0));
-        fileInfo6 = new FileInfo("6.jpg", "a", LocalDateTime.of(2024, Month.JANUARY, 14, 13, 45, 0));
+        fileInfo1 = new FileInfo(Path.of("1.jpg"), "f", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        fileInfo2 = new FileInfo(Path.of("2.jpg"), "e", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 49, 0));
+        fileInfo3 = new FileInfo(Path.of("3.jpg"), "d", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 48, 0));
+        fileInfo4 = new FileInfo(Path.of("4.jpg"), "c", LocalDateTime.of(2024, Month.JANUARY, 14, 13, 47, 0));
+        fileInfo5 = new FileInfo(Path.of("5.jpg"), "b", LocalDateTime.of(2024, Month.JANUARY, 14, 13, 46, 0));
+        fileInfo6 = new FileInfo(Path.of("6.jpg"), "a", LocalDateTime.of(2024, Month.JANUARY, 14, 13, 45, 0));
     }
 
     @Test
@@ -74,9 +75,9 @@ class FileInfoTest {
     @Test
     @DisplayName("no title, sort by date and filename")
     void test3_compareTo() {
-        FileInfo fileInfo10 = new FileInfo("3.jpg", "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
-        FileInfo fileInfo11 = new FileInfo("1.jpg", "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
-        FileInfo fileInfo12 = new FileInfo("2.jpg", "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        FileInfo fileInfo10 = new FileInfo(Path.of("3.jpg"), "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        FileInfo fileInfo11 = new FileInfo(Path.of("1.jpg"), "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        FileInfo fileInfo12 = new FileInfo(Path.of("2.jpg"), "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
 
         FileInfo[] fileInfos = new FileInfo[] {fileInfo10, fileInfo11, fileInfo12};
         Arrays.sort(fileInfos);
@@ -89,9 +90,9 @@ class FileInfoTest {
     @Test
     @DisplayName("mixed use of title and name")
     void test4_compareTo() {
-        FileInfo fileInfo10 = new FileInfo("3.jpg", "a", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
-        FileInfo fileInfo11 = new FileInfo("1.jpg", "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
-        FileInfo fileInfo12 = new FileInfo("2.jpg", "d", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        FileInfo fileInfo10 = new FileInfo(Path.of("3.jpg"), "a", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        FileInfo fileInfo11 = new FileInfo(Path.of("1.jpg"), "", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
+        FileInfo fileInfo12 = new FileInfo(Path.of("2.jpg"), "d", LocalDateTime.of(2024, Month.JANUARY, 15, 13, 50, 0));
 
         FileInfo[] fileInfos = new FileInfo[] {fileInfo10, fileInfo11, fileInfo12};
         Arrays.sort(fileInfos);

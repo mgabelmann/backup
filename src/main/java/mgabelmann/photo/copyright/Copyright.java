@@ -21,13 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -37,13 +37,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -64,52 +65,50 @@ public class Copyright {
 
     private static final int TABLE_FONT_SIZE = 8;
     private static final int TABLE_PADDING = 3;
-
     private static final int BODY_FONT_SIZE = 10;
 
+    public static final String FIELD_DELIMITER = ",";
+    public static final String FIELD_SEPARATOR = FIELD_DELIMITER + " ";
+
+    public static final String DATE_FORMAT_YEARMONTH = "yyyy-MM";
+
+    /** Values for different languages. */
+    private final ResourceBundle resourceBundle;
+
+    /** Values for PDF/CSV output. */
+    private final ResourceBundle outputBundle;
+
     /** Directory to process. */
-    private final File directory;
+    private Path directory;
 
     /** Copyright case number. */
-    private final String caseNumber;
+    private String caseNumber;
 
     /** Is group published or unpublished. */
     private boolean published;
 
-    /** Service for scanning files. */
-    private final ExecutorService service;
-
     /** Results of scanning files. */
-    private List<FileInfo> fileInfos;
+    private final List<FileInfo> fileInfos;
 
 
     /**
      * Constructor.
-     * @param directory directory
+     * @param path directory
      * @param caseNumber case number
      * @param published published or unpublished
      */
     public Copyright(
-            final File directory,
+            final Path path,
             final String caseNumber,
             final boolean published) {
 
-        if (directory == null) {
-            throw new IllegalArgumentException("directory is required");
-
-        } else if (!directory.isDirectory()) {
-            throw new IllegalArgumentException("directory is not a directory");
-
-        } else if (caseNumber == null || caseNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("case number is required");
-        }
-
-        this.directory = directory;
-        this.caseNumber = caseNumber;
-        this.published = published;
+        this.setDirectory(path);
+        this.setCaseNumber(caseNumber);
+        this.setPublished(published);
 
         this.fileInfos = new ArrayList<>();
-        this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+        this.resourceBundle = ResourceBundle.getBundle("language", Locale.getDefault());
+        this.outputBundle = ResourceBundle.getBundle("output");
     }
 
     /**
@@ -118,21 +117,19 @@ public class Copyright {
      */
     public static void main(final String[] args) {
         if (args.length != 3) {
-            System.err.println("invalid number of arguments");
+            System.out.println("invalid number of arguments");
+            System.out.println("Usage: <directory> <caseNumber> <published>");
             System.exit(1);
         }
 
-        File directory = new File(args[0]);
+        Path directory = Paths.get(args[0]);
         String caseNumber = args[1];
         boolean published = args[2].equalsIgnoreCase("p");
-
-//        File directory = new File("P:\\Mike\\catalog1\\05_output\\copyright\\to_submit\\test");
-//        String caseNumber = "casenumber";
-//        boolean published = false;
 
         Copyright copyright = new Copyright(directory, caseNumber, published);
 
         try {
+            copyright.collect();
             copyright.process();
 
         } catch (WorkflowException we) {
@@ -140,118 +137,204 @@ public class Copyright {
         }
     }
 
+    public String getCaseNumber() {
+        return caseNumber;
+    }
+
+    public void setCaseNumber(final String caseNumber) {
+        if (caseNumber == null || caseNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException(getResourceByKey("application.error.casenumber.required"));
+        }
+
+        this.caseNumber = caseNumber;
+    }
+
+    public Path getDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(final Path directory) {
+        if (directory == null) {
+            throw new IllegalArgumentException(getResourceByKey("application.error.directory.required"));
+
+        } else if (!Files.isDirectory(directory)) {
+            throw new IllegalArgumentException(getResourceByKey("application.error.directory.notadir"));
+        }
+
+        this.directory = directory;
+    }
+
+    public List<FileInfo> getFileInfos() {
+        return fileInfos;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(final boolean published) {
+        this.published = published;
+    }
+
+    public ResourceBundle getResourceBundle() {
+        return resourceBundle;
+    }
+
+    public String getResourceByKey(final String key) {
+        return resourceBundle.getString(key);
+    }
+
+    public String getOutputByKey(final String key) {
+        return outputBundle.getString(key);
+    }
+
     /**
-     * Call this to do work.
-     * @throws WorkflowException error
+     * Call this method once all files are collected.
+     * @throws WorkflowException
      */
     public void process() throws WorkflowException {
-        LOGGER.info("copyright - processing directory '{}', for case number '{}', published={}", directory, caseNumber, published);
+        if (fileInfos.size() > IMAGES_PER_GROUP_REGISTRATION_MAX) {
+            throw new WorkflowException(getResourceByKey("application.error.toomany") + IMAGES_PER_GROUP_REGISTRATION_MAX);
 
-        try {
-            this.processDirectory(this.directory);
+        } else {
+            LOGGER.info("found {} images to process", fileInfos.size());
+        }
 
-            service.shutdown();
+        //group photos by date, so we can sort by date
+        Map<LocalDate, List<FileInfo>> dateRecords = new TreeMap<>();
+        Map<String, List<FileInfo>> titleRecords = new TreeMap<>();
 
-            boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
+        for (FileInfo fileInfo : fileInfos) {
+            LocalDate date = published ? fileInfo.getDate() : LocalDate.now();
 
-            if (fileInfos.size() > IMAGES_PER_GROUP_REGISTRATION_MAX) {
-                throw new WorkflowException("Too many images, max image count for bulk registration is: " + IMAGES_PER_GROUP_REGISTRATION_MAX);
+            if (dateRecords.containsKey(date)) {
+                dateRecords.get(date).add(fileInfo);
 
             } else {
-                LOGGER.info("found {} images to process", fileInfos.size());
+                ArrayList<FileInfo> infos = new ArrayList<>();
+                infos.add(fileInfo);
+                dateRecords.put(date, infos);
             }
 
-            //group photos by date, so we can sort by date
-            Map<LocalDate, List<FileInfo>> dateRecords = new TreeMap<>();
-            Map<String, List<FileInfo>> titleRecords = new TreeMap<>();
+            String dateStr = DateTimeFormatter.ofPattern(DATE_FORMAT_YEARMONTH).format(date);
 
-            for (FileInfo fileInfo : fileInfos) {
-                LocalDate date = published ? fileInfo.getDate() : LocalDate.now();
+            if (titleRecords.containsKey(dateStr)) {
+                titleRecords.get(dateStr).add(fileInfo);
 
-                if (dateRecords.containsKey(date)) {
-                    dateRecords.get(date).add(fileInfo);
+            } else {
+                ArrayList<FileInfo> infos = new ArrayList<>();
+                infos.add(fileInfo);
+                titleRecords.put(dateStr, infos);
+            }
+        }
 
-                } else {
-                    ArrayList<FileInfo> infos = new ArrayList<>();
-                    infos.add(fileInfo);
-                    dateRecords.put(date, infos);
-                }
+        try {
+            Path manifestFilename = this.getManifestFilename(directory, directory.getFileName().toString());
 
-                String dateStr = DateTimeFormatter.ofPattern("yyyy-MM").format(date);
-
-                if (titleRecords.containsKey(dateStr)) {
-                    titleRecords.get(dateStr).add(fileInfo);
-
-                } else {
-                    ArrayList<FileInfo> infos = new ArrayList<>();
-                    infos.add(fileInfo);
-                    titleRecords.put(dateStr, infos);
-                }
+            {
+                //generate manifest file
+                String manifest = this.getManifest(dateRecords);
+                this.writeTextFile(manifest, manifestFilename);
             }
 
-            //generate manifest file
-            StringBuilder sb1 = this.getManifest(dateRecords);
-            String manifestFilename = this.getManifestFilename();
+            {
+                //generate titles file
+                List<String> titles = this.getAllTitles(titleRecords);
+                String titlesStr = titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
 
-            this.writeTextFile(sb1.toString(), manifestFilename);
-
-            //generate titles file
-            List<String> titles = this.getAllTitles(titleRecords);
-            String titlesStr = titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
-            String titlesPath = this.getTitlesFilename();
-
-            this.writeTextFile(titlesStr, titlesPath);
-
-            //create PDF manifest file
-            this.writePDF(dateRecords);
-
-            //create ZIP file of ALL files processed/created except titles
-            this.writeZip(dateRecords, manifestFilename);
-
-            if (!timeout) {
-                LOGGER.warn("service timed out");
+                Path titlesFilename = this.getTitlesFilename(directory);
+                this.writeTextFile(titlesStr, titlesFilename);
             }
 
-        } catch (IOException | InterruptedException e) {
-            throw new WorkflowException(e);
+            {
+                //create PDF manifest file
+                Path pdfFilename = this.getPDFFilename(directory, directory.getFileName().toString());
+                this.writePdfFile(dateRecords, pdfFilename);
+            }
+
+            {
+                //create ZIP file of ALL files processed/created except titles
+                Path zipFilename = this.getZipFilename(directory, directory.getFileName().toString());
+                this.writeZipFile(dateRecords, manifestFilename, zipFilename);
+            }
+
+        } catch (IOException ie) {
+            throw new WorkflowException(ie);
         }
 
         LOGGER.info("copyright - finished");
     }
 
     /**
-     * Process a single directory, it will recurse into subdirectories by default. Files are added to list if they
-     * meet criteria.
+     * Add records, but only if they do not already exist.
+     * @param records
+     */
+    public void add(final List<FileInfo> records) {
+        List<FileInfo> recordsToAdd = records.stream().filter(a->!fileInfos.contains(a)).toList();
+        fileInfos.addAll(recordsToAdd);
+    }
+
+    /**
+     * Call this to do work. Used by command line tool, only call once.
+     * @throws WorkflowException error
+     */
+    public void collect() throws WorkflowException {
+        LOGGER.info("copyright - processing directory '{}', for case number '{}', published={}", directory, caseNumber, published);
+
+        List<FileInfo> records = this.collect(directory);
+        this.fileInfos.addAll(records);
+    }
+
+    /**
+     * Process a single directory and all its contents.
+     * @param dir starting directory
+     * @return list of matching files
+     * @throws WorkflowException error
+     */
+    public List<FileInfo> collect(final Path dir) throws WorkflowException {
+        List<FileInfo> records = new ArrayList<>();
+
+        try (Stream<Path> paths = Files.walk(dir, 10).distinct()) {
+            for (Path p : (Iterable<Path>) paths::iterator) {
+                if (Files.isDirectory(p)) {
+                    this.collectDirectory(p);
+
+                } else if (Files.isReadable(p) && p.getFileName().toString().toLowerCase().matches(".*\\.jpe?g")) {
+                    FileInfo fi = this.collectFile(p);
+                    records.add(fi);
+
+                    LOGGER.debug("found file '{}'", fi.getFilename());
+
+                } else {
+                    LOGGER.debug("skipping file {}, is not a JPG", p.getFileName());
+                }
+            }
+
+        } catch (IOException ie) {
+            throw new WorkflowException(ie);
+        }
+
+        return records;
+    }
+
+    /**
+     * Process a directory.
      * @param dir directory
      * @throws WorkflowException error
      */
-    public void processDirectory(final File dir) throws WorkflowException {
-        final File[] files = dir.listFiles();
-
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    this.processDirectory(file);
-
-                } else if (file.getName().toLowerCase().matches(".*\\.jpe?g")) {
-                    this.processFile(file);
-
-                } else {
-                    LOGGER.debug("skipping file {}, is not a JPG", file.getName());
-                }
-            }
-        }
+    public void collectDirectory(final Path dir) throws WorkflowException {
+        LOGGER.debug("directory={}", dir.toString());
     }
 
     /**
      * Process a single file.
      * @param file file to process
+     * @return record
      * @throws WorkflowException error
      */
-    public void processFile(final File file) throws WorkflowException {
+    public FileInfo collectFile(final Path file) throws WorkflowException {
         try {
-            final String fileName = this.getFilename(file);
-
+            final String fileName = file.getFileName().toString();
             final LocalDateTime dateTime = this.getFileDateTime(file, false);
             String title;
 
@@ -259,34 +342,22 @@ public class Copyright {
                 title = this.getTitle(file);
 
             } catch (ImagingException ie) {
-                String name = file.getName();
-                title = name.lastIndexOf(".") == -1 ? name : name.substring(0, name.lastIndexOf("."));
+                title = null;
 
-                LOGGER.warn("unable to get title from file {}, using {} for title. error is {}", file.getName(), title, ie.getMessage());
-                printStackTrace(Level.WARN, ie);
+                printStackTrace(Level.DEBUG, ie);
+                LOGGER.warn("unable to get title from file {}, error is {}", fileName, ie.getMessage());
             }
 
-            fileInfos.add(new FileInfo(fileName, title, dateTime));
-            LOGGER.debug("added: {}", file.getName());
+            if (title == null || title.isEmpty()) {
+                final int i = fileName.lastIndexOf('.');
+                title = i == -1 ? fileName : fileName.substring(0, i);
+            }
+
+            return new FileInfo(file, title, dateTime);
 
         } catch (IOException ie) {
-            printStackTrace(Level.INFO, ie);
-            throw new WorkflowException("error processing " + file.getName() + ", " + ie.getMessage(), ie);
-        }
-    }
-
-    /**
-     * Print stack trace to the log.
-     * @param level log level
-     * @param ex stacktrace
-     */
-    void printStackTrace(Level level, Throwable ex) {
-        try (Writer buf = new StringWriter(); PrintWriter pw = new PrintWriter(buf)) {
-            ex.printStackTrace(pw);
-            LOGGER.atLevel(level).log(buf.toString());
-
-        } catch (IOException ie) {
-            LOGGER.warn("error printing stacktrace. msg={}", ie.getMessage());
+            printStackTrace(Level.DEBUG, ie);
+            throw new WorkflowException(getResourceByKey("application.error.file.get") + file.getFileName().toString() + ", " + ie.getMessage(), ie);
         }
     }
 
@@ -294,37 +365,41 @@ public class Copyright {
      * Get manifest file name.
      * @return file name
      */
-    String getManifestFilename() {
+    Path getManifestFilename(final Path base, final String fileBase) {
         final String filePrefix = published ? "p" : "u";
-        final String fileBase = directory.getName();
+        final String fileName = (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
 
-        return directory.getAbsolutePath() + File.separator + (filePrefix + fileBase + "_" + caseNumber + ".csv").toLowerCase();
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
      * Get PDF file name.
      * @return file name
      */
-    String getPDFFilename() {
-        final String fileBase = directory.getName();
-        return directory.getAbsolutePath() + File.separator + (fileBase + ".pdf").toLowerCase();
+    Path getPDFFilename(final Path base, final String fileBase) {
+        final String fileName = (fileBase + ".pdf").toLowerCase();
+
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
      * Get ZIP file name.
      * @return file name
      */
-    String getZipFilename() {
-        final String fileBase = directory.getName();
-        return directory.getAbsolutePath() + File.separator + (fileBase + ".zip").toLowerCase();
+    Path getZipFilename(final Path base, final String fileBase) {
+        final String fileName = (fileBase + ".zip").toLowerCase();
+
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
      * Get titles file name.
      * @return file name
      */
-    String getTitlesFilename() {
-        return directory.getAbsolutePath() + File.separator + "_titles.txt";
+    Path getTitlesFilename(final Path base) {
+        final String fileName = "_titles.txt";
+
+        return Paths.get(base.toString(), fileName);
     }
 
     /**
@@ -332,22 +407,22 @@ public class Copyright {
      * @param dateRecords sorted records
      * @return manifest contents
      */
-    StringBuilder getManifest(final Map<LocalDate, List<FileInfo>> dateRecords) {
+    String getManifest(final Map<LocalDate, List<FileInfo>> dateRecords) {
         StringBuilder manifest = new StringBuilder();
 
         int imageNumber = 0;
 
-        String publicationType = published ? "Published" : "Unpublished";
+        String publicationType = published ? getOutputByKey("type.published") : getOutputByKey("type.unpublished");
 
-        manifest.append("Group Registration of ").append(publicationType).append(" Photographs").append(System.lineSeparator());;
-        manifest.append("This is a complete list of photographs for case number: ").append(caseNumber).append(System.lineSeparator());
+        manifest.append(getOutputByKey("title.line1.1")).append(publicationType).append(getOutputByKey("title.line1.2")).append(System.lineSeparator());
+        manifest.append(getOutputByKey("title.line2.1")).append(caseNumber).append(System.lineSeparator());
 
+        final List<String> titles = new ArrayList<>(Arrays.asList(getOutputByKey("table.title.1"), getOutputByKey("table.title.2"), getOutputByKey("table.title.3")));
         if (published) {
-            manifest.append("Photograph #, Filename of Photograph, Title of Photograph, Date of Publication").append(System.lineSeparator());
-
-        } else {
-            manifest.append("Photograph #, Filename of Photograph, Title of Photograph").append(System.lineSeparator());;
+            titles.add(getOutputByKey("table.title.4"));
         }
+
+        manifest.append(String.join(FIELD_SEPARATOR, titles)).append(System.lineSeparator());
 
         for (Map.Entry<LocalDate, List<FileInfo>> entry : dateRecords.entrySet()) {
             List<FileInfo> values = entry.getValue();
@@ -356,12 +431,12 @@ public class Copyright {
             values.sort(new AlphanumComparator());
 
             for (FileInfo fileInfo : values) {
-                manifest.append(++imageNumber).append(", ");
-                manifest.append(fileInfo.getFileName()).append(", ");
+                manifest.append(++imageNumber).append(FIELD_SEPARATOR);
+                manifest.append(fileInfo.getFilename()).append(FIELD_SEPARATOR);
                 manifest.append(fileInfo.getName());
 
                 if (published) {
-                    manifest.append(", ");
+                    manifest.append(FIELD_SEPARATOR);
                     manifest.append(fileInfo.getDate());
                 }
 
@@ -369,7 +444,7 @@ public class Copyright {
             }
         }
 
-        return manifest;
+        return manifest.toString();
     }
 
     /**
@@ -423,9 +498,9 @@ public class Copyright {
      * @param path path and file to create
      * @throws IOException error
      */
-    void writeTextFile(final String sb, final String path) throws IOException {
+    void writeTextFile(final String sb, final Path path) throws IOException {
         //create or replace existing
-        Files.write(Paths.get(path), sb.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.write(path, sb.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         LOGGER.info("created: {}", path);
     }
@@ -434,26 +509,24 @@ public class Copyright {
      * Create a zip file of all required files.
      * @param dateRecords sorted records
      * @param manifestPath location of manifest file
+     * @param zipPath path to zip file
      * @throws IOException error
      */
-    //FIXME: use dateRecords or fileInfos?
-    void writeZip(final Map<LocalDate, List<FileInfo>> dateRecords, final String manifestPath) throws IOException {
-        String zipPath = this.getZipFilename();
-
-        List<String> zipPaths = new ArrayList<>();
+    void writeZipFile(final Map<LocalDate, List<FileInfo>> dateRecords, final Path manifestPath, final Path zipPath) throws IOException {
+        List<Path> zipPaths = new ArrayList<>();
         zipPaths.add(manifestPath);
 
         for (Map.Entry<LocalDate, List<FileInfo>> items : dateRecords.entrySet()) {
             for (FileInfo item : items.getValue()) {
-                zipPaths.add(directory.getAbsolutePath() + File.separator + item.getFileName());
+                zipPaths.add(item.getPath());
             }
         }
 
-        try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipPath))) {
-            for (String filePath : zipPaths) {
-                File fileToZip = new File(filePath);
-                zipOut.putNextEntry(new ZipEntry(fileToZip.getName()));
-                Files.copy(fileToZip.toPath(), zipOut);
+        try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipPath.toFile()))) {
+            for (Path filePath : zipPaths) {
+                Path newPath = Paths.get(filePath.getFileName().toString());
+                zipOut.putNextEntry(new ZipEntry(newPath.toString()));
+                Files.copy(filePath, zipOut);
             }
         }
 
@@ -465,12 +538,11 @@ public class Copyright {
      * @param dateRecords sorted records
      * @throws WorkflowException error
      */
-    void writePDF(final Map<LocalDate, List<FileInfo>> dateRecords) throws WorkflowException {
-        String pdfPath = this.getPDFFilename();
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+    void writePdfFile(final Map<LocalDate, List<FileInfo>> dateRecords, final Path pdfPath) throws WorkflowException {
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_YEARMONTH);
 
         try {
-            PdfWriter writer = new PdfWriter(pdfPath);
+            PdfWriter writer = new PdfWriter(pdfPath.toFile());
             PdfDocument pdfDoc = new PdfDocument(writer);
 
             Document doc = new Document(pdfDoc, PageSize.A4, true);
@@ -480,29 +552,29 @@ public class Copyright {
             FooterEventHandler footerHandler = new FooterEventHandler();
             pdfDoc.addEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
 
-            String publicationType = published ? "Published" : "Unpublished";
+            String publicationType = published ? getOutputByKey("type.published") : getOutputByKey("type.unpublished");
             int columns = published ? 4 : 3;
 
-            Paragraph p1 = new Paragraph("Group Registration of " + publicationType + " Photographs" + System.lineSeparator());
-            p1.add("This is a complete list of photographs for case number: " + caseNumber + System.lineSeparator());
+            Paragraph p1 = new Paragraph(getOutputByKey("title.line1.1") + publicationType + getOutputByKey("title.line1.2") + System.lineSeparator());
+            p1.add(getOutputByKey("title.line2.1") + caseNumber + System.lineSeparator());
             p1.setFontSize(BODY_FONT_SIZE);
             p1.setBold();
             doc.add(p1);
 
             Table table = new Table(columns);
-            table.addCell(this.getTableHeaderCell(60, "Photograph #"));
-            table.addCell(this.getTableHeaderCell(180, "Filename of Photograph"));
-            table.addCell(this.getTableHeaderCell(180, "Title of Photograph"));
+            table.addCell(this.getTableHeaderCell(60, getOutputByKey("table.title.1")));
+            table.addCell(this.getTableHeaderCell(180, getOutputByKey("table.title.2")));
+            table.addCell(this.getTableHeaderCell(180, getOutputByKey("table.title.3")));
 
             if (published) {
-                table.addCell(this.getTableHeaderCell(75, "Date of Publication"));
+                table.addCell(this.getTableHeaderCell(75, getOutputByKey("table.title.4")));
             }
 
             int number = 0;
             for (Map.Entry<LocalDate, List<FileInfo>> items : dateRecords.entrySet()) {
                 for (FileInfo item : items.getValue()) {
                     table.addCell(this.getTableCell("" + (++number)));
-                    table.addCell(this.getTableCell(item.getFileName()));
+                    table.addCell(this.getTableCell(item.getPath().getFileName().toString()));
                     table.addCell(this.getTableCell(item.getName()));
 
                     if (published) {
@@ -524,6 +596,68 @@ public class Copyright {
         } catch (Exception e) {
             throw new WorkflowException(e);
         }
+    }
+
+    /**
+     * Print stack trace to the log.
+     * @param level log level
+     * @param ex stacktrace
+     */
+    void printStackTrace(final Level level, final Throwable ex) {
+        try (Writer buf = new StringWriter(); PrintWriter pw = new PrintWriter(buf)) {
+            ex.printStackTrace(pw);
+            LOGGER.atLevel(level).log(buf.toString());
+
+        } catch (IOException ie) {
+            LOGGER.warn("error printing stacktrace. msg={}", ie.getMessage());
+        }
+    }
+
+    /**
+     * Get title of image from file metadata.
+     * @param file file to process
+     * @return title or empty string
+     * @throws IOException error
+     */
+    String getTitle(final Path file) throws IOException {
+        ImageMetadata metadata = Imaging.getMetadata(file.toFile());
+
+        if (metadata instanceof JpegImageMetadata jpegMetadata) {
+            JpegPhotoshopMetadata photoshopMetadata = jpegMetadata.getPhotoshop();
+
+            if (photoshopMetadata != null) {
+                @SuppressWarnings("unchecked")
+                final List<GenericImageMetadata.GenericImageMetadataItem> photoshopMetadataItems = (List<GenericImageMetadata.GenericImageMetadataItem>) photoshopMetadata.getItems();
+
+                for (final GenericImageMetadata.GenericImageMetadataItem photoshopMetadataItem : photoshopMetadataItems) {
+                    final String propertyName = photoshopMetadataItem.getKeyword();
+                    final String propertyValue = photoshopMetadataItem.getText();
+
+                    //Object Name is the title as output by Adobe Photoshop and Lightroom
+                    if (propertyName.equals("Object Name")) {
+                        return propertyValue;
+                    }
+                }
+            }
+        }
+
+        LOGGER.trace("{}, no title found", file.getFileName());
+
+        return "";
+    }
+
+    /**
+     * Get date and time for file. Uses last modified.
+     * @param file file to process
+     * @param created use created vs last modified time
+     * @return date and time
+     * @throws IOException error
+     */
+    LocalDateTime getFileDateTime(final Path file, final boolean created) throws IOException {
+        BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
+        FileTime dateTime = created ? attr.creationTime() : attr.lastModifiedTime();
+
+        return LocalDateTime.ofInstant(dateTime.toInstant(), ZoneId.systemDefault());
     }
 
     /**
@@ -553,61 +687,6 @@ public class Copyright {
         cell.setFontSize(TABLE_FONT_SIZE);
 
         return cell;
-    }
-
-    /**
-     * Get title of image from file metadata.
-     * @param file file to process
-     * @return title or empty string
-     * @throws IOException error
-     */
-    String getTitle(final File file) throws IOException {
-        ImageMetadata metadata = Imaging.getMetadata(file);
-
-        if (metadata instanceof JpegImageMetadata jpegMetadata) {
-            JpegPhotoshopMetadata photoshopMetadata = jpegMetadata.getPhotoshop();
-
-            if (photoshopMetadata != null) {
-                @SuppressWarnings("unchecked")
-                final List<GenericImageMetadata.GenericImageMetadataItem> photoshopMetadataItems = (List<GenericImageMetadata.GenericImageMetadataItem>) photoshopMetadata.getItems();
-
-                for (final GenericImageMetadata.GenericImageMetadataItem photoshopMetadataItem : photoshopMetadataItems) {
-                    final String propertyName = photoshopMetadataItem.getKeyword();
-                    final String propertyValue = photoshopMetadataItem.getText();
-
-                    //Object Name is the title as output by Adobe Photoshop and Lightroom
-                    if (propertyName.equals("Object Name")) {
-                        return propertyValue;
-                    }
-                }
-            }
-        }
-
-        LOGGER.trace("{}, no title found", file.getName());
-
-        return "";
-    }
-
-    /**
-     * Get file name.
-     * @param file file to process
-     * @return file name
-     */
-    String getFilename(final File file) {
-        return file.getName();
-    }
-
-    /**
-     * Get date and time for file. Uses last modified.
-     * @param file file to process
-     * @return date and time
-     * @throws IOException error
-     */
-    LocalDateTime getFileDateTime(final File file, final boolean created) throws IOException {
-        BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-        FileTime dateTime = created ? attr.creationTime() : attr.lastModifiedTime();
-
-        return LocalDateTime.ofInstant(dateTime.toInstant(), ZoneId.systemDefault());
     }
 
 }

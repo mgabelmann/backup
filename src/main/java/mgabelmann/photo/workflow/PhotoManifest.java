@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import mgabelmann.photo.ApplicationMode;
 import mgabelmann.photo.workflow.gui.PhotoManifestGUI;
 import mgabelmann.photo.workflow.io.FileRecord;
 import mgabelmann.photo.workflow.io.FileRecordCodec;
@@ -18,17 +19,12 @@ import org.slf4j.LoggerFactory;
  * @version 0.9
  */
 public final class PhotoManifest {
-    /** Mode of application. */
-    public enum Mode {
-        GUI, //Graphical Mode
-        CLI  //Command line Mode
-    }
-    
+
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(PhotoManifest.class);
     
     /** Mode of application. */
-    private final transient Mode mode;
+    private final transient ApplicationMode mode;
     
     /** Base directory to parse from. */
     private transient File rootdir;
@@ -48,12 +44,12 @@ public final class PhotoManifest {
      * @param mode
      * @param rootdir
      */
-    public PhotoManifest(final Mode mode, final File rootdir) {
+    public PhotoManifest(final ApplicationMode mode, final File rootdir) {
         this.mode = mode;
         this.rootdir = rootdir;
         this.records = new ArrayList<>();
         
-        if (this.mode == Mode.GUI) {
+        if (this.mode == ApplicationMode.GUI) {
             this.pmg = new PhotoManifestGUI(this);
             
         } else {
@@ -135,7 +131,7 @@ public final class PhotoManifest {
     /**
      * @return the mode
      */
-    public Mode getMode() {
+    public ApplicationMode getMode() {
         return mode;
     }
     
@@ -160,15 +156,15 @@ public final class PhotoManifest {
      */
     public static void main(final String[] args) {
         boolean error = false;
-        Mode mode = Mode.GUI;
+        ApplicationMode mode = ApplicationMode.GUI;
         File directory = null;
         
         if (args.length >= 1) {
             try {
-                mode = Mode.valueOf(args[0]);
+                mode = ApplicationMode.valueOf(args[0]);
 
             } catch (IllegalArgumentException iae) {
-                LOGGER.error("invalid Mode={}, choose from {}", args[0], Mode.values());
+                LOGGER.error("invalid ApplicationMode={}, choose from {}", args[0], ApplicationMode.values());
                 error = true;
             }
         }

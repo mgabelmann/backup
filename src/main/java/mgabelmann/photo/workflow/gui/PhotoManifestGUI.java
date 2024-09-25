@@ -1,7 +1,6 @@
 package mgabelmann.photo.workflow.gui;
 
 import java.awt.GridLayout;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -15,6 +14,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
@@ -66,7 +66,7 @@ public final class PhotoManifestGUI
     private void init() {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         
-        Panel p1 = new Panel(new GridLayout(8,1));
+        JPanel p1 = new JPanel(new GridLayout(8,1));
         labelFile = new JLabel("");
         progressBar = new JProgressBar();
         cmbType = new JComboBox<>();
@@ -97,29 +97,13 @@ public final class PhotoManifestGUI
         btnFile.setActionCommand("file");
         btnFile.addActionListener(this);
         
-        btnProcess.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                processFilesActionPerformed();
-            }
-        });
+        btnProcess.addActionListener(e -> processFilesActionPerformed());
         
-        btnVerify.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                verifyFilesActionPerformed();
-            }
-        });
+        btnVerify.addActionListener(e -> verifyFilesActionPerformed());
         
-        btnReadFile.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                readFile();
-            }
-        });
+        btnReadFile.addActionListener(e -> readFile());
         
-        btnWriteFile.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                writeFile();
-            }
-        });
+        btnWriteFile.addActionListener(e -> writeFile());
         
         this.getContentPane().add(p1);
         
@@ -213,6 +197,7 @@ public final class PhotoManifestGUI
      *
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
+    @Override
     public void actionPerformed(ActionEvent arg0) {
         if ("file".equals(arg0.getActionCommand())) {
             selectFileActionPerformed();
@@ -223,6 +208,7 @@ public final class PhotoManifestGUI
      *
      * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
      */
+    @Override
     public void propertyChange(PropertyChangeEvent arg0) {
         if ("progress".equals(arg0.getPropertyName())) {
             progressBar.setValue((Integer) arg0.getNewValue());
