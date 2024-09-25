@@ -106,13 +106,6 @@ public class CopyrightGUI extends JFrame {
 
         this.tableModel1 = new FileInfoTableModel(resourceBundle, copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT_YEARMONTHDAY));
 
-        //NOTE: add some test data, temporary
-//        {
-//            this.tableModel1.add(new FileInfo(Path.of("file_20240502.jpg"), "title3", LocalDateTime.now()));
-//            this.tableModel1.add(new FileInfo(Path.of("file_20240514.jpg"), "", LocalDateTime.now().minusDays(10)));
-//            this.tableModel1.add(new FileInfo(Path.of("file_20240523.jpg"), "title2", LocalDateTime.now().minusDays(15)));
-//        }
-
         this.table1 = new JTable();
         this.table1.setFillsViewportHeight(true);
         this.table1.addColumn(new TableColumn());
