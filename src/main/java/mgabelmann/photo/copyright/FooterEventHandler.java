@@ -24,7 +24,7 @@ public class FooterEventHandler implements IEventHandler {
 
     private static final int FONT_SIZE = 10;
 
-    private PdfFormXObject placeholder;
+    private final PdfFormXObject placeholder;
 
     /**
      * Constructor.

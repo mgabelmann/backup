@@ -80,7 +80,7 @@ public class CopyrightOptionsPanel extends JPanel {
     }
 
     private String getResourceByKey(final String key) {
-        return copyright.getResourceBundle().getString(key);
+        return copyright.getResourceByKey(key);
     }
 
     private void browse() {

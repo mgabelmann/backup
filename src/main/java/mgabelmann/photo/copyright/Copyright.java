@@ -72,7 +72,10 @@ public class Copyright {
 
     public static final String DATE_FORMAT_YEARMONTH = "yyyy-MM";
 
+    /** Values for different languages. */
     private final ResourceBundle resourceBundle;
+
+    /** Values for PDF/CSV output. */
     private final ResourceBundle outputBundle;
 
     /** Directory to process. */
@@ -86,6 +89,7 @@ public class Copyright {
 
     /** Results of scanning files. */
     private final List<FileInfo> fileInfos;
+
 
     /**
      * Constructor.
@@ -113,7 +117,7 @@ public class Copyright {
      */
     public static void main(final String[] args) {
         if (args.length != 3) {
-            System.err.println("invalid number of arguments");
+            System.out.println("invalid number of arguments");
             System.out.println("Usage: <directory> <caseNumber> <published>");
             System.exit(1);
         }
@@ -176,11 +180,11 @@ public class Copyright {
         return resourceBundle;
     }
 
-    private String getResourceByKey(final String key) {
+    public String getResourceByKey(final String key) {
         return resourceBundle.getString(key);
     }
 
-    private String getOutputByKey(final String key) {
+    public String getOutputByKey(final String key) {
         return outputBundle.getString(key);
     }
 
@@ -640,24 +644,6 @@ public class Copyright {
         LOGGER.trace("{}, no title found", file.getFileName());
 
         return "";
-    }
-
-    /**
-     * Get file name.
-     * @param file file to process
-     * @return file name
-     */
-    String getFilename(final Path file) {
-        return file.getFileName().toString();
-    }
-
-    /**
-     *
-     * @param file
-     * @return
-     */
-    String getParent(final Path file) {
-        return file.getParent().toString();
     }
 
     /**
