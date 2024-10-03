@@ -71,6 +71,7 @@ public class Copyright {
     public static final String FIELD_SEPARATOR = FIELD_DELIMITER + " ";
 
     public static final String DATE_FORMAT_YEARMONTH = "yyyy-MM";
+    public static final String DATE_FORMAT_MONTHDAYEAR = "MM/dd/yyyy";
 
     /** Values for different languages. */
     private final ResourceBundle resourceBundle;
@@ -201,8 +202,8 @@ public class Copyright {
         }
 
         //group photos by date, so we can sort by date
-        Map<LocalDate, List<FileInfo>> dateRecords = new TreeMap<>();
-        Map<String, List<FileInfo>> titleRecords = new TreeMap<>();
+        TreeMap<LocalDate, List<FileInfo>> dateRecords = new TreeMap<>();
+        TreeMap<String, List<FileInfo>> titleRecords = new TreeMap<>();
 
         for (FileInfo fileInfo : fileInfos) {
             LocalDate date = published ? fileInfo.getDate() : LocalDate.now();
@@ -240,10 +241,23 @@ public class Copyright {
             {
                 //generate titles file
                 List<String> titles = this.getAllTitles(titleRecords);
-                String titlesStr = titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(outputBundle.getString("titles.totalimages")).append(fileInfos.size()).append(System.lineSeparator());
+
+                DateTimeFormatter dateFormatter1 = DateTimeFormatter.ofPattern(DATE_FORMAT_MONTHDAYEAR);
+                LocalDate firstRecord = dateRecords.firstKey();
+                LocalDate lastRecord = dateRecords.lastKey();
+
+                sb.append(outputBundle.getString("titles.completionyear")).append(lastRecord.getYear()).append(System.lineSeparator());
+                sb.append(outputBundle.getString("titles.earliestdate")).append(dateFormatter1.format(firstRecord)).append(System.lineSeparator());
+                sb.append(outputBundle.getString("titles.latestdate")).append(dateFormatter1.format(lastRecord)).append(System.lineSeparator());
+
+                sb.append(System.lineSeparator());
+                sb.append(titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator())));
 
                 Path titlesFilename = this.getTitlesFilename(directory);
-                this.writeTextFile(titlesStr, titlesFilename);
+                this.writeTextFile(sb.toString(), titlesFilename);
             }
 
             {
@@ -459,6 +473,7 @@ public class Copyright {
         for (Map.Entry<String, List<FileInfo>> entry : titleRecords.entrySet()) {
             String key = entry.getKey();
             List<FileInfo> values = entry.getValue();
+            String date = published ? "" : key;
 
             //sort value collections
             values.sort(new AlphanumComparator());
@@ -466,11 +481,15 @@ public class Copyright {
             StringBuilder sb = new StringBuilder();
 
             for (FileInfo value : values) {
+                if (published && counter == 0) {
+                    date = value.getDate().getMonth().toString();
+                }
+
                 ++counter;
                 String name = value.getName();
 
                 if (sb.length() + name.length() > TITLES_GROUP_MAX_CHARACTERS) {
-                    sb.insert(0, key + "(" + counter +"): ");
+                    sb.insert(0, date + "(" + counter +"): ");
                     sb.delete(sb.length() - 2, sb.length());
 
                     titles.add(sb.toString());
@@ -481,7 +500,7 @@ public class Copyright {
                 sb.append(name).append(", ");
             }
 
-            sb.insert(0, key + " (" + counter +"): ");
+            sb.insert(0, date + " (" + counter +"): ");
             sb.delete(sb.length() - 2, sb.length());
 
             titles.add(sb.toString());
