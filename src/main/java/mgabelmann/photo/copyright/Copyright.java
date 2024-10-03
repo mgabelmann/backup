@@ -473,7 +473,7 @@ public class Copyright {
         for (Map.Entry<String, List<FileInfo>> entry : titleRecords.entrySet()) {
             String key = entry.getKey();
             List<FileInfo> values = entry.getValue();
-            String date = "";
+            String date = published ? "" : key;
 
             //sort value collections
             values.sort(new AlphanumComparator());
@@ -481,7 +481,7 @@ public class Copyright {
             StringBuilder sb = new StringBuilder();
 
             for (FileInfo value : values) {
-                if (counter == 0) {
+                if (published && counter == 0) {
                     date = value.getDate().getMonth().toString();
                 }
 
