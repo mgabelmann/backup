@@ -473,6 +473,7 @@ public class Copyright {
         for (Map.Entry<String, List<FileInfo>> entry : titleRecords.entrySet()) {
             String key = entry.getKey();
             List<FileInfo> values = entry.getValue();
+            String date = "";
 
             //sort value collections
             values.sort(new AlphanumComparator());
@@ -480,11 +481,15 @@ public class Copyright {
             StringBuilder sb = new StringBuilder();
 
             for (FileInfo value : values) {
+                if (counter == 0) {
+                    date = value.getDate().getMonth().toString();
+                }
+
                 ++counter;
                 String name = value.getName();
 
                 if (sb.length() + name.length() > TITLES_GROUP_MAX_CHARACTERS) {
-                    sb.insert(0, key + "(" + counter +"): ");
+                    sb.insert(0, date + "(" + counter +"): ");
                     sb.delete(sb.length() - 2, sb.length());
 
                     titles.add(sb.toString());
@@ -495,7 +500,7 @@ public class Copyright {
                 sb.append(name).append(", ");
             }
 
-            sb.insert(0, key + " (" + counter +"): ");
+            sb.insert(0, date + " (" + counter +"): ");
             sb.delete(sb.length() - 2, sb.length());
 
             titles.add(sb.toString());
