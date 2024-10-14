@@ -71,7 +71,7 @@ public class Copyright {
     public static final String FIELD_SEPARATOR = FIELD_DELIMITER + " ";
 
     public static final String DATE_FORMAT_YEARMONTH = "yyyy-MM";
-    public static final String DATE_FORMAT_MONTHDAYEAR = "MM/dd/yyyy";
+    public static final String DATE_FORMAT_MONTHDAYYEAR = "MM/dd/yyyy";
 
     /** Values for different languages. */
     private final ResourceBundle resourceBundle;
@@ -245,7 +245,7 @@ public class Copyright {
                 StringBuilder sb = new StringBuilder();
                 sb.append(outputBundle.getString("titles.totalimages")).append(fileInfos.size()).append(System.lineSeparator());
 
-                DateTimeFormatter dateFormatter1 = DateTimeFormatter.ofPattern(DATE_FORMAT_MONTHDAYEAR);
+                DateTimeFormatter dateFormatter1 = DateTimeFormatter.ofPattern(DATE_FORMAT_MONTHDAYYEAR);
                 LocalDate firstRecord = dateRecords.firstKey();
                 LocalDate lastRecord = dateRecords.lastKey();
 

@@ -16,6 +16,7 @@ public final class FileInfo implements Serializable, Comparable<FileInfo> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileInfo.class);
 
     private final Path path;
+
     private final LocalDateTime dateTime;
 
     private String title;
