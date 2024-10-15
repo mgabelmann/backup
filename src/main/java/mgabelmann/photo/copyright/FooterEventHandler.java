@@ -34,7 +34,7 @@ public class FooterEventHandler implements IEventHandler {
     }
 
     @Override
-    public void handleEvent(Event e) {
+    public void handleEvent(final Event e) {
         PdfDocumentEvent event = (PdfDocumentEvent) e;
         PdfDocument pdf = event.getDocument();
         PdfPage page = event.getPage();
@@ -61,7 +61,7 @@ public class FooterEventHandler implements IEventHandler {
      * Update total page number for each page.
      * @param pdf document
      */
-    public void writeTotal(PdfDocument pdf) {
+    public void writeTotal(final PdfDocument pdf) {
         int totalPages = pdf.getNumberOfPages();
         LOGGER.trace("adding total pages {}", totalPages);
 

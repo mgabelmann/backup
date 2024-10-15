@@ -4,20 +4,20 @@ package mgabelmann.photo.workflow.exception;
 public class WorkflowException extends Exception {
 
     public WorkflowException() {
-        
+        super();
     }
     
-    public WorkflowException(String message) {
+    public WorkflowException(final String message) {
         super(message);
     }
 
     
-    public WorkflowException(Throwable cause) {
+    public WorkflowException(final Throwable cause) {
         super(cause);
     }
 
     
-    public WorkflowException(String message, Throwable cause) {
+    public WorkflowException(final String message, final Throwable cause) {
         super(message, cause);
     }
 

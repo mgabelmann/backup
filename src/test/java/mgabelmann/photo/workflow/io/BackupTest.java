@@ -118,7 +118,7 @@ public class BackupTest {
         IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
         Assertions.assertEquals("dirRemote is not writable", iae.getMessage());
 
-        dstDir.toFile().setWritable(true);
+        Assertions.assertTrue(dstDir.toFile().setWritable(true));
     }
 
 
@@ -178,7 +178,8 @@ public class BackupTest {
 
         Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
         Path dstFile1 = this.createFileWithData(dstDir, "srcFile1.jpg", "updated data");
-        dstFile1.toFile().setLastModified(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli());
+
+        Assertions.assertTrue(dstFile1.toFile().setLastModified(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli()));
 
         Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
         b.process();
@@ -194,7 +195,8 @@ public class BackupTest {
 
         Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
         Path dstFile1 = this.createFileWithData(dstDir, "srcFile1.jpg", "updated data");
-        dstFile1.toFile().setLastModified(srcFile1.toFile().lastModified());
+
+        Assertions.assertTrue(dstFile1.toFile().setLastModified(srcFile1.toFile().lastModified()));
 
         Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
         b.process();
@@ -224,7 +226,7 @@ public class BackupTest {
         IOException ie = Assertions.assertThrows(IOException.class, b::process);
         Assertions.assertEquals("unable to create directory " + dstDir.toAbsolutePath(), ie.getMessage());
 
-        dstDir.toFile().setWritable(true);
+        Assertions.assertTrue(dstDir.toFile().setWritable(true));
     }
 
 
