@@ -34,15 +34,10 @@ public class FooterEventHandler implements IEventHandler {
     }
 
     @Override
-    public void handleEvent(Event e) {
+    public void handleEvent(final Event e) {
         PdfDocumentEvent event = (PdfDocumentEvent) e;
         PdfDocument pdf = event.getDocument();
         PdfPage page = event.getPage();
-
-        Rectangle pageSize = page.getPageSize();
-
-        PdfCanvas pdfCanvas = new PdfCanvas(page);
-        Canvas canvas = new Canvas(pdfCanvas, pageSize);
 
         int pageNumber = pdf.getPageNumber(page);
         LOGGER.trace("adding page number {}", pageNumber);
@@ -50,6 +45,10 @@ public class FooterEventHandler implements IEventHandler {
         Paragraph p1 = new Paragraph().add("" + pageNumber).add(" of ");
         p1.setFontSize(FONT_SIZE);
 
+        PdfCanvas pdfCanvas = new PdfCanvas(page);
+        Rectangle pageSize = page.getPageSize();
+
+        Canvas canvas = new Canvas(pdfCanvas, pageSize);
         canvas.showTextAligned(p1, 300f, 25f, TextAlignment.RIGHT);
         canvas.close();
 
@@ -61,7 +60,7 @@ public class FooterEventHandler implements IEventHandler {
      * Update total page number for each page.
      * @param pdf document
      */
-    public void writeTotal(PdfDocument pdf) {
+    public void writeTotal(final PdfDocument pdf) {
         int totalPages = pdf.getNumberOfPages();
         LOGGER.trace("adding total pages {}", totalPages);
 

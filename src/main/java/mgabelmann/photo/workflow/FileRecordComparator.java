@@ -26,7 +26,7 @@ public final class FileRecordComparator implements Comparator<FileRecord>, Seria
      * Constructor, uses Field.PATH as default.
      */
     public FileRecordComparator() {
-        this.field = Field.PATH;
+        this(Field.PATH);
     }
     
     /**
@@ -74,4 +74,5 @@ public final class FileRecordComparator implements Comparator<FileRecord>, Seria
         
         return compare;
     }
+
 }

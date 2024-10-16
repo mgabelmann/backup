@@ -98,15 +98,12 @@ public final class FileRecord implements Comparable<FileRecord> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("FileRecord{");
-        sb.append("path='").append(path).append('\'');
-        sb.append(", sum='").append(sum).append('\'');
-        sb.append(", size=").append(size);
-        sb.append(", date=").append(date);
-        sb.append(", type=").append(type);
-        sb.append('}');
-
-        return sb.toString();
+        return "FileRecord{" + "path='" + path + '\'' +
+                ", sum='" + sum + '\'' +
+                ", size=" + size +
+                ", date=" + date +
+                ", type=" + type +
+                '}';
     }
 
     @Override

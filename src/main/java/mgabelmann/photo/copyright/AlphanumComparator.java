@@ -66,16 +66,28 @@ public class AlphanumComparator implements Comparator<FileInfo> {
     }
 
     /**
+     * Compare FileInfo objects for order.
+     * @param s1 the first object to be compared.
+     * @param s2 the second object to be compared.
+     * @return order
+     */
+    public int compare(final FileInfo s1, final FileInfo s2) {
+        if (s1 == null || s2 == null) {
+            return 0;
+
+        } else {
+            return this.compare(s1.getName(), s2.getName());
+        }
+    }
+
+    /**
      * Compare two objects.
-     * @param f1 the first object to be compared.
-     * @param f2 the second object to be compared.
+     * @param s1 the first object to be compared.
+     * @param s2 the second object to be compared.
      * @return value
      */
-    public int compare(FileInfo f1, FileInfo f2) {
-        String s1 = f1.getName();
-        String s2 = f2.getName();
-
-        if ((s1 == null) || (s2 == null)) {
+    public int compare(final String s1, final String s2) {
+        if (s1 == null || s2 == null) {
             return 0;
         }
 
@@ -97,6 +109,7 @@ public class AlphanumComparator implements Comparator<FileInfo> {
                 // Simple chunk comparison by length.
                 int thisChunkLength = thisChunk.length();
                 result = thisChunkLength - thatChunk.length();
+
                 // If equal, the first different number counts
                 if (result == 0) {
                     for (int i = 0; i < thisChunkLength; i++) {
@@ -106,6 +119,7 @@ public class AlphanumComparator implements Comparator<FileInfo> {
                         }
                     }
                 }
+
             } else {
                 result = thisChunk.compareTo(thatChunk);
             }
@@ -117,4 +131,5 @@ public class AlphanumComparator implements Comparator<FileInfo> {
 
         return s1Length - s2Length;
     }
+
 }

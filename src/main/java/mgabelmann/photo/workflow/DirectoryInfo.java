@@ -26,7 +26,7 @@ public final class DirectoryInfo {
      * Constructor.
      * @param directory
      */
-    public DirectoryInfo(File directory) {
+    public DirectoryInfo(final File directory) {
         super();
         this.directory = directory;
     }
