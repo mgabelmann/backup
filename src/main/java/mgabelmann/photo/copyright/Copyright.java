@@ -79,17 +79,17 @@ public class Copyright {
     /** Values for PDF/CSV output. */
     private final ResourceBundle outputBundle;
 
-    /** Directory to process. */
-    private Path directory;
-
-    /** Copyright case number. */
-    private String caseNumber;
-
-    /** Is group published or unpublished. */
-    private boolean published;
-
     /** Results of scanning files. */
     private final List<FileInfo> fileInfos;
+
+    /** Directory to process. Required. */
+    private Path directory;
+
+    /** Copyright case number. Required. */
+    private String caseNumber;
+
+    /** Is group published or unpublished. Required. */
+    private boolean published;
 
 
     /**
@@ -201,8 +201,10 @@ public class Copyright {
             LOGGER.info("found {} images to process", fileInfos.size());
         }
 
-        //group photos by date, so we can sort by date
+        //group photos by date
         TreeMap<LocalDate, List<FileInfo>> dateRecords = new TreeMap<>();
+
+        //group photos by year and month
         TreeMap<String, List<FileInfo>> titleRecords = new TreeMap<>();
 
         for (FileInfo fileInfo : fileInfos) {
@@ -240,24 +242,10 @@ public class Copyright {
 
             {
                 //generate titles file
-                List<String> titles = this.getAllTitles(titleRecords);
-
-                StringBuilder sb = new StringBuilder();
-                sb.append(outputBundle.getString("titles.totalimages")).append(fileInfos.size()).append(System.lineSeparator());
-
-                DateTimeFormatter dateFormatter1 = DateTimeFormatter.ofPattern(DATE_FORMAT_MONTHDAYYEAR);
-                LocalDate firstRecord = dateRecords.firstKey();
-                LocalDate lastRecord = dateRecords.lastKey();
-
-                sb.append(outputBundle.getString("titles.completionyear")).append(lastRecord.getYear()).append(System.lineSeparator());
-                sb.append(outputBundle.getString("titles.earliestdate")).append(dateFormatter1.format(firstRecord)).append(System.lineSeparator());
-                sb.append(outputBundle.getString("titles.latestdate")).append(dateFormatter1.format(lastRecord)).append(System.lineSeparator());
-
-                sb.append(System.lineSeparator());
-                sb.append(titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator())));
+                String data = this.getTitlesContent(titleRecords, dateRecords.firstKey(), dateRecords.lastKey());
 
                 Path titlesFilename = this.getTitlesFilename(directory);
-                this.writeTextFile(sb.toString(), titlesFilename);
+                this.writeTextFile(data, titlesFilename);
             }
 
             {
@@ -334,9 +322,8 @@ public class Copyright {
     /**
      * Process a directory.
      * @param dir directory
-     * @throws WorkflowException error
      */
-    public void collectDirectory(final Path dir) throws WorkflowException {
+    public void collectDirectory(final Path dir) {
         LOGGER.debug("directory={}", dir.toString());
     }
 
@@ -358,11 +345,12 @@ public class Copyright {
             } catch (ImagingException ie) {
                 title = null;
 
-                printStackTrace(Level.DEBUG, ie);
+                this.printStackTrace(Level.DEBUG, ie);
                 LOGGER.warn("unable to get title from file {}, error is {}", fileName, ie.getMessage());
             }
 
             if (title == null || title.isEmpty()) {
+                //if no title, use filename minus extension
                 final int i = fileName.lastIndexOf('.');
                 title = i == -1 ? fileName : fileName.substring(0, i);
             }
@@ -370,7 +358,7 @@ public class Copyright {
             return new FileInfo(file, title, dateTime);
 
         } catch (IOException ie) {
-            printStackTrace(Level.DEBUG, ie);
+            this.printStackTrace(Level.DEBUG, ie);
             throw new WorkflowException(getResourceByKey("application.error.file.get") + file.getFileName().toString() + ", " + ie.getMessage(), ie);
         }
     }
@@ -509,6 +497,28 @@ public class Copyright {
         }
 
         return titles;
+    }
+
+    String getTitlesContent(
+            final TreeMap<String, List<FileInfo>> titleRecords,
+            final LocalDate firstRecord,
+            final LocalDate lastRecord) {
+
+        List<String> titles = this.getAllTitles(titleRecords);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(outputBundle.getString("titles.totalimages")).append(fileInfos.size()).append(System.lineSeparator());
+
+        DateTimeFormatter dateFormatter1 = DateTimeFormatter.ofPattern(DATE_FORMAT_MONTHDAYYEAR);
+
+        sb.append(outputBundle.getString("titles.completionyear")).append(lastRecord.getYear()).append(System.lineSeparator());
+        sb.append(outputBundle.getString("titles.earliestdate")).append(dateFormatter1.format(firstRecord)).append(System.lineSeparator());
+        sb.append(outputBundle.getString("titles.latestdate")).append(dateFormatter1.format(lastRecord)).append(System.lineSeparator());
+
+        sb.append(System.lineSeparator());
+        sb.append(titles.stream().collect(Collectors.joining(System.lineSeparator() + System.lineSeparator())));
+
+        return sb.toString();
     }
 
     /**

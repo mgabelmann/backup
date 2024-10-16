@@ -39,17 +39,16 @@ public class FooterEventHandler implements IEventHandler {
         PdfDocument pdf = event.getDocument();
         PdfPage page = event.getPage();
 
-        Rectangle pageSize = page.getPageSize();
-
-        PdfCanvas pdfCanvas = new PdfCanvas(page);
-        Canvas canvas = new Canvas(pdfCanvas, pageSize);
-
         int pageNumber = pdf.getPageNumber(page);
         LOGGER.trace("adding page number {}", pageNumber);
 
         Paragraph p1 = new Paragraph().add("" + pageNumber).add(" of ");
         p1.setFontSize(FONT_SIZE);
 
+        PdfCanvas pdfCanvas = new PdfCanvas(page);
+        Rectangle pageSize = page.getPageSize();
+
+        Canvas canvas = new Canvas(pdfCanvas, pageSize);
         canvas.showTextAligned(p1, 300f, 25f, TextAlignment.RIGHT);
         canvas.close();
 

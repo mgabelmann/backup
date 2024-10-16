@@ -9,5 +9,6 @@ public enum HashType {
 	MD5,
 	SHA256,
 	SHA384,
-	SHA512
+	SHA512,
+
 }

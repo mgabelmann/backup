@@ -12,7 +12,7 @@ import java.util.Objects;
 /**
  * Contains information about a file.
  */
-public final class FileInfo implements Serializable, Comparable<FileInfo> {
+public final class FileInfo implements Comparable<FileInfo>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileInfo.class);
 
     private final Path path;
