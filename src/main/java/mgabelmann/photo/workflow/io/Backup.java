@@ -29,15 +29,28 @@ public final class Backup extends AbstractWorkflow {
     /** Service that ensures that the file checksums are threaded for optimum performance. */
     private final ExecutorService service;
 
+    /** Take action, if false no changes are made by the application. */
+    private boolean action = false;
+
+    /** Use checksum to verify if last modified date is different. */
+    private boolean useChecksum = false;
+
 
     /**
      * Main method.
      * @param args arguments
      */
     public static void main(final String[] args) {
+//        Backup backup = new Backup(
+//        	new File("P:/Mike/catalog1/03_raw/01_working/2024/2024-01-26"),
+//        	new File("Z:/catalog1/03_raw/01_working/2024/2024-01-26"),
+//            true
+//        );
+
         Backup backup = new Backup(
-        	new File("P:/Mike/catalog1/03_raw/01_working/2024"),
-        	new File("Z:/catalog1/03_raw/01_working/2024")
+                new File("P:/Mike/catalog1/03_raw/01_working/2024"),
+                new File("Z:/catalog1/03_raw/01_working/2024"),
+                  true
         );
         
         try {
@@ -52,9 +65,10 @@ public final class Backup extends AbstractWorkflow {
      * Constructor.
      * @param workDir dirLocal local directory (original files)
      * @param dirRemote dirRemote remote directory (backup files)
+     * @param action
      */
-    public Backup(final File workDir, final File dirRemote) {
-        this(workDir, dirRemote, DEFAULT_HASHTYPE, DEFAULT_VERIFY);
+    public Backup(final File workDir, final File dirRemote, final boolean action) {
+        this(workDir, dirRemote, DEFAULT_HASHTYPE, DEFAULT_VERIFY, action);
     }
 
     /**
@@ -64,9 +78,10 @@ public final class Backup extends AbstractWorkflow {
      * @param type checksum type
      * @param verify verify copy
      */
-    public Backup(final File dirLocal, final File dirRemote, final HashType type, final boolean verify) {
+    public Backup(final File dirLocal, final File dirRemote, final HashType type, final boolean verify, final boolean action) {
         super(dirLocal, dirRemote, type, verify);
-        
+
+        this.action = action;
         this.service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 5);
     }
 
@@ -81,9 +96,9 @@ public final class Backup extends AbstractWorkflow {
 
             service.shutdown();
 
-            boolean timeout = service.awaitTermination(15, TimeUnit.SECONDS);
+            boolean timeout = service.awaitTermination(5, TimeUnit.SECONDS);
 
-            if (timeout) {
+            if (!timeout) {
                 LOG.warn("service timed out");
             }
 
@@ -158,46 +173,64 @@ public final class Backup extends AbstractWorkflow {
      * @throws IOException error backing up file
      */
     private void backupFile(final File localFile, final File remoteFile) throws IOException {
-        boolean copied = true;
+        boolean copied = false;
 
         //FIXME: switch to do this instead
         //BasicFileAttributes attributesLocal = Files.readAttributes(localFile.toPath(), BasicFileAttributes.class);
         //BasicFileAttributes attributesRemote = Files.readAttributes(remoteFile.toPath(), BasicFileAttributes.class);
 
-
         if (remoteFile.exists()) {
-            /*if (attributesLocal.size() != attributesRemote.size()) {
+            boolean equalLength = localFile.length() == remoteFile.length();
+            boolean equalLastModified = localFile.lastModified() == remoteFile.lastModified();
 
+            if (!equalLength) {
+                LOG.info("FILE: {} {} - different length", localFile.getAbsolutePath(), (action ? "replacing" : ""));
 
-            } else if (attributesLocal.lastModifiedTime() != attributesRemote.lastModifiedTime()) {
+                if (action) {
+                    FileUtil.copyFile(localFile, remoteFile, true);
+                    copied = true;
+                }
 
+            } else if (!equalLastModified) {
+                if (useChecksum) {
+                    boolean equalChecksum = FileUtil.verifyCopy(localFile, remoteFile, type);
 
-            } else {
+                    if (!equalChecksum) {
+                        LOG.info("FILE: {} {} - different last modified and checksum", localFile.getAbsolutePath(), (action ? "replacing" : ""));
 
-            }*/
+                        if (action) {
+                            FileUtil.copyFile(localFile, remoteFile, true);
+                            copied = true;
+                        }
 
-            if (localFile.length() != remoteFile.length()) {
-                //different file lengths
-                LOG.info("FILE: {} replacing - different length", localFile.getAbsolutePath());
-                
-                FileUtil.copyFile(localFile, remoteFile, true);
-                
-            } else if (localFile.lastModified() != remoteFile.lastModified()) {
-                //same file lengths and different timestamps
-                LOG.info("FILE: {} replacing - different timestamp", localFile.getAbsolutePath());
-                
-                FileUtil.copyFile(localFile, remoteFile, true);
-                
+                    } else {
+                        //last modified different, but files have same checksum
+                        LOG.info("FILE: {} {} - different last modified, equal checksum", localFile.getAbsolutePath(), (action ? "skipping" : ""));
+                    }
+
+                } else {
+                    //faster, but could be error-prone
+                    LOG.info("FILE: {} {} - different last modified", localFile.getAbsolutePath(), (action ? "replacing" : ""));
+
+                    if (action) {
+                        FileUtil.copyFile(localFile, remoteFile, true);
+                        copied = true;
+                    }
+                }
+
             } else {
                 //same file length and timestamps
-                LOG.debug("FILE: {} skipping - identical", localFile.getAbsolutePath());
-                copied = false;
+                LOG.debug("FILE: {} {} - identical", localFile.getAbsolutePath(), (action ? "skipping" : ""));
             }
             
         } else {
-            //copy file
-            LOG.info("FILE: {} copying - new", localFile.getAbsolutePath());
-            FileUtil.copyFile(localFile, remoteFile, true);
+            //copy file since it does not exist in remote location
+            LOG.info("FILE: {} {} - new", localFile.getAbsolutePath(), (action ? "copying" : ""));
+
+            if (action) {
+                FileUtil.copyFile(localFile, remoteFile, true);
+                copied = true;
+            }
         } 
         
         //if copied, verify it
