@@ -50,7 +50,7 @@ public class BackupTest {
         HashType type = HashType.SHA256;
         boolean verify = false;
 
-        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(null, dstDir.toFile(), type, verify));
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(null, dstDir.toFile(), type, verify, true));
         Assertions.assertEquals("dirLocal cannot be null", iae.getMessage());
     }
 
@@ -62,7 +62,7 @@ public class BackupTest {
         HashType type = HashType.SHA256;
         boolean verify = false;
 
-        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify, true));
         Assertions.assertEquals("dirLocal does not exist", iae.getMessage());
     }
 
@@ -73,7 +73,7 @@ public class BackupTest {
         HashType type = HashType.SHA256;
         boolean verify = false;
 
-        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), null, type, verify));
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), null, type, verify, true));
         Assertions.assertEquals("dirRemote cannot be null", iae.getMessage());
     }
 
@@ -85,7 +85,7 @@ public class BackupTest {
         HashType type = HashType.SHA256;
         boolean verify = false;
 
-        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify, true));
         Assertions.assertEquals("dirRemote does not exist", iae.getMessage());
     }
 
@@ -97,7 +97,7 @@ public class BackupTest {
         HashType type = null;
         boolean verify = false;
 
-        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify, true));
         Assertions.assertEquals("type cannot be null", iae.getMessage());
     }
 
@@ -120,7 +120,7 @@ public class BackupTest {
             Assertions.fail("could not set to read only");
         }
 
-        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify));
+        IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> new Backup(srcDir.toFile(), dstDir.toFile(), type, verify, true));
         Assertions.assertEquals("dirRemote is not writable", iae.getMessage());
 
         Assertions.assertTrue(dstDir.toFile().setWritable(true));
@@ -135,7 +135,7 @@ public class BackupTest {
 
         Path dstDir = this.createDirectory(tempDir, "dstDir");
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false, true);
         b.process();
 
         Path dstDir2 = Paths.get(dstDir + File.separator + "srcDir2");
@@ -152,7 +152,7 @@ public class BackupTest {
 
         Path srcFile1 = this.createFile(srcDir, "srcFile1.jpg");
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false, true);
         b.process();
 
         Path dstFile1 = Paths.get(dstDir + File.separator + "srcFile1.jpg");
@@ -169,7 +169,7 @@ public class BackupTest {
         Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
         Path dstFile1 = this.createFileWithData(dstDir, "srcFile1.jpg", "old data");
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false, true);
         b.process();
 
         Assertions.assertEquals(12, dstFile1.toFile().length());
@@ -186,7 +186,7 @@ public class BackupTest {
 
         Assertions.assertTrue(dstFile1.toFile().setLastModified(Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli()));
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false, true);
         b.process();
 
         Assertions.assertEquals(srcFile1.toFile().lastModified(), dstFile1.toFile().lastModified());
@@ -203,7 +203,7 @@ public class BackupTest {
 
         Assertions.assertTrue(dstFile1.toFile().setLastModified(srcFile1.toFile().lastModified()));
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false, true);
         b.process();
 
         Assertions.assertEquals(srcFile1.toFile().lastModified(), dstFile1.toFile().lastModified());
@@ -226,7 +226,7 @@ public class BackupTest {
 
         Path srcFile1 = this.createFileWithData(srcDir, "srcFile1.jpg", "updated data");
 
-        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false);
+        Backup b = new Backup(srcDir.toFile(), dstDir.toFile(), HashType.SHA256, false,true);
 
         IOException ie = Assertions.assertThrows(IOException.class, b::process);
         Assertions.assertEquals("unable to create directory " + dstDir.toAbsolutePath(), ie.getMessage());
