@@ -473,7 +473,6 @@ public class Copyright {
                     date = value.getDate().getMonth().toString();
                 }
 
-                ++counter;
                 String name = value.getName();
 
                 if (sb.length() + name.length() > TITLES_GROUP_MAX_CHARACTERS) {
@@ -485,6 +484,7 @@ public class Copyright {
                     counter = 0;
                 }
 
+                ++counter;
                 sb.append(name).append(", ");
             }
 
