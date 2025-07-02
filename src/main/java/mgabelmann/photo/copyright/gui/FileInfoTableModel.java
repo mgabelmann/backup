@@ -20,7 +20,7 @@ public class FileInfoTableModel extends AbstractTableModel {
 
     private final List<FileInfo> data;
 
-    private final EventListenerList listenerList = new EventListenerList();
+    private final EventListenerList listenerList;
 
     private final DateTimeFormatter formatter;
 
@@ -28,6 +28,7 @@ public class FileInfoTableModel extends AbstractTableModel {
 
 
     public FileInfoTableModel(final ResourceBundle resourceBundle, List<FileInfo> data, final DateTimeFormatter formatter) {
+        this.listenerList = new EventListenerList();
         this.resourceBundle = resourceBundle;
         this.data = data;
         this.formatter = formatter;

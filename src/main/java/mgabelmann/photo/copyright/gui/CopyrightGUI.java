@@ -29,6 +29,10 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
+//import java.util.concurrent.ExecutionException;
+//import java.util.concurrent.ExecutorService;
+//import java.util.concurrent.Executors;
+//import java.util.concurrent.FutureTask;
 
 /**
  *
@@ -37,6 +41,9 @@ import java.util.ResourceBundle;
 public class CopyrightGUI extends JFrame {
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(CopyrightGUI.class);
+
+    /** REGEX for JPG or JPEG files. */
+    private static final String FILE_FILTER_JPEG = ".*\\.jpe?g";
 
     /** Underlying class that does all the work. */
     private final transient Copyright copyright;
@@ -59,6 +66,13 @@ public class CopyrightGUI extends JFrame {
     private FileInfoTableModel tableModel1;
     private CopyrightOptionsPanel cop;
 
+    private JFileChooser chooser;
+
+
+    //FEATURE: for published photos add a column that has the published date to the JTable that can be edited, otherwise disable/hide
+    //         maybe not needed since date shown just drops the day (YYYY-MM-DD -> YYYY-MM)
+
+    //FIXME: removing the row you are editing will cause an error.
 
     /** Quick and dirty initialization, with defaults. */
     public static void main(final String[] args) {
@@ -163,6 +177,38 @@ public class CopyrightGUI extends JFrame {
             cm.add(cmRemove);
         }
 
+        {
+//            //NOTE: not sure if this is necessary. Slow initialization may be related to disconnected mapped drives.
+//            FutureTask<JFileChooser> futureChooser = new FutureTask<>(() -> this.chooser = new JFileChooser());
+//            ExecutorService executorService = Executors.newSingleThreadExecutor();
+//            executorService.execute(futureChooser);
+//
+//            try {
+//                this.chooser = futureChooser.get();
+//
+//            } catch (ExecutionException | InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+            this.chooser = new JFileChooser();
+
+            this.chooser.setFileFilter(new FileFilter() {
+                @Override
+                public boolean accept(final File f) {
+                    if (f.isDirectory()) {
+                        return true;
+
+                    } else {
+                        return f.getName().toLowerCase().matches(FILE_FILTER_JPEG);
+                    }
+                }
+
+                @Override
+                public String getDescription() {
+                    return getResourceByKey("dialog.filechooser.filter");
+                }
+            });
+        }
+
         this.cop.update();
 
         //finish initialization and display UI
@@ -171,6 +217,11 @@ public class CopyrightGUI extends JFrame {
         this.setVisible(true);
     }
 
+    /**
+     * Get a value from the properties file.
+     * @param key property to look up
+     * @return value
+     */
     private String getResourceByKey(final String key) {
         return resourceBundle.getString(key);
     }
@@ -180,9 +231,6 @@ public class CopyrightGUI extends JFrame {
      * @param directoriesOnly directories or file
      */
     private void add(final boolean directoriesOnly) {
-        //set to users default directory
-        JFileChooser chooser = new JFileChooser();
-
         if (directoriesOnly) {
             chooser.setDialogTitle(getResourceByKey("dialog.filechooser.dir"));
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -190,23 +238,6 @@ public class CopyrightGUI extends JFrame {
         } else {
             chooser.setDialogTitle(getResourceByKey("dialog.filechooser.file"));
         }
-
-        chooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(final File f) {
-                if (f.isDirectory()) {
-                    return true;
-
-                } else {
-                    return f.getName().toLowerCase().matches(".*\\.jpe?g");
-                }
-            }
-
-            @Override
-            public String getDescription() {
-                return getResourceByKey("dialog.filechooser.filter");
-            }
-        });
 
         int returnVal = chooser.showOpenDialog(this);
 
@@ -244,6 +275,14 @@ public class CopyrightGUI extends JFrame {
     private void remove() {
         int[] selected = table1.getSelectedRows();
         LOGGER.debug("remove indexes: {}", selected);
+
+        /* if you are editing, stop editing otherwise you get an unrecoverable error will occur if that row is part
+         * of the selected rows
+         */
+        if (table1.getEditingRow() >= 0) {
+            table1.getCellEditor().stopCellEditing();
+            LOGGER.debug("stopping cell editing");
+        }
 
         if (selected.length > 0) {
             //remove in reverse order as indexes would change otherwise
