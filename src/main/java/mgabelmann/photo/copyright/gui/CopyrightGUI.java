@@ -29,10 +29,6 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
-//import java.util.concurrent.ExecutionException;
-//import java.util.concurrent.ExecutorService;
-//import java.util.concurrent.Executors;
-//import java.util.concurrent.FutureTask;
 
 /**
  *
@@ -178,17 +174,10 @@ public class CopyrightGUI extends JFrame {
         }
 
         {
-//            //NOTE: not sure if this is necessary. Slow initialization may be related to disconnected mapped drives.
-//            FutureTask<JFileChooser> futureChooser = new FutureTask<>(() -> this.chooser = new JFileChooser());
-//            ExecutorService executorService = Executors.newSingleThreadExecutor();
-//            executorService.execute(futureChooser);
-//
-//            try {
-//                this.chooser = futureChooser.get();
-//
-//            } catch (ExecutionException | InterruptedException e) {
-//                throw new RuntimeException(e);
-//            }
+            /* NOTE: if the application is slow starting up, it may be because there is a disconnected network drive
+             *       that is mapped. JFileChooser blocks trying to access these. I haven't found a way to speed
+             *       this up.
+             */
             this.chooser = new JFileChooser();
 
             this.chooser.setFileFilter(new FileFilter() {
@@ -237,6 +226,7 @@ public class CopyrightGUI extends JFrame {
 
         } else {
             chooser.setDialogTitle(getResourceByKey("dialog.filechooser.file"));
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         }
 
         int returnVal = chooser.showOpenDialog(this);
@@ -257,7 +247,7 @@ public class CopyrightGUI extends JFrame {
                         copyright.add(List.of(fi));
                     }
 
-                } catch (WorkflowException we) {
+                } catch (final WorkflowException we) {
                     LOGGER.error(we.getMessage());
                 }
 
@@ -279,9 +269,10 @@ public class CopyrightGUI extends JFrame {
         /* if you are editing, stop editing otherwise you get an unrecoverable error will occur if that row is part
          * of the selected rows
          */
-        if (table1.getEditingRow() >= 0) {
+        int editRow = table1.getEditingRow();
+        if (editRow >= 0) {
             table1.getCellEditor().stopCellEditing();
-            LOGGER.debug("stopping cell editing");
+            LOGGER.debug("stopped editing row: {}", editRow);
         }
 
         if (selected.length > 0) {
@@ -297,7 +288,6 @@ public class CopyrightGUI extends JFrame {
             this.update();
             this.cop.updateImageCount();
         }
-
     }
 
     /**
