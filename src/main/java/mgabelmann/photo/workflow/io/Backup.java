@@ -47,11 +47,22 @@ public final class Backup extends AbstractWorkflow {
 //            true
 //        );
 
+        //Mike's drive
+        /*
         Backup backup = new Backup(
                 new File("P:/Mike/catalog1/03_raw/01_working/2024"),
                 new File("Z:/catalog1/03_raw/01_working/2024"),
                   true
         );
+         */
+
+        //Jen's drive
+        Backup backup = new Backup(
+                new File("J:/Photos/catalog1/2_photos"),
+                new File("W:/Photos/catalog1/2_photos"),
+                true
+        );
+
         
         try {
             backup.process();
