@@ -41,6 +41,7 @@ public final class Backup extends AbstractWorkflow {
      * @param args arguments
      */
     public static void main(final String[] args) {
+//Example: backup a single directory by year and day
 //        Backup backup = new Backup(
 //        	new File("P:/Mike/catalog1/03_raw/01_working/2024/2024-01-26"),
 //        	new File("Z:/catalog1/03_raw/01_working/2024/2024-01-26"),
@@ -48,21 +49,22 @@ public final class Backup extends AbstractWorkflow {
 //        );
 
         //Mike's drive
-        /*
+
         Backup backup = new Backup(
-                new File("P:/Mike/catalog1/03_raw/01_working/2024"),
-                new File("Z:/catalog1/03_raw/01_working/2024"),
+                new File("P:/Mike/catalog1/03_raw/01_working/2026"),
+                new File("Z:/catalog1/03_raw/01_working/2026"),
                   true
         );
-         */
+
 
         //Jen's drive
+        /*
         Backup backup = new Backup(
                 new File("J:/Photos/catalog1/2_photos"),
                 new File("W:/Photos/catalog1/2_photos"),
                 true
         );
-
+        */
         
         try {
             backup.process();
