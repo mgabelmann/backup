@@ -78,7 +78,7 @@ public final class Backup extends AbstractWorkflow {
      * Constructor.
      * @param workDir dirLocal local directory (original files)
      * @param dirRemote dirRemote remote directory (backup files)
-     * @param action
+     * @param action take action or leave as is
      */
     public Backup(final File workDir, final File dirRemote, final boolean action) {
         this(workDir, dirRemote, DEFAULT_HASHTYPE, DEFAULT_VERIFY, action);
