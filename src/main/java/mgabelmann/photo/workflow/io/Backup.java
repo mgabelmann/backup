@@ -41,30 +41,17 @@ public final class Backup extends AbstractWorkflow {
      * @param args arguments
      */
     public static void main(final String[] args) {
-//Example: backup a single directory by year and day
 //        Backup backup = new Backup(
 //        	new File("P:/Mike/catalog1/03_raw/01_working/2024/2024-01-26"),
 //        	new File("Z:/catalog1/03_raw/01_working/2024/2024-01-26"),
 //            true
 //        );
 
-        //Mike's drive
-
         Backup backup = new Backup(
-                new File("P:/Mike/catalog1/03_raw/01_working/2026"),
-                new File("Z:/catalog1/03_raw/01_working/2026"),
+                new File("P:/Mike/catalog1/03_raw/01_working/2024"),
+                new File("Z:/catalog1/03_raw/01_working/2024"),
                   true
         );
-
-
-        //Jen's drive
-        /*
-        Backup backup = new Backup(
-                new File("J:/Photos/catalog1/2_photos"),
-                new File("W:/Photos/catalog1/2_photos"),
-                true
-        );
-        */
         
         try {
             backup.process();
@@ -78,7 +65,7 @@ public final class Backup extends AbstractWorkflow {
      * Constructor.
      * @param workDir dirLocal local directory (original files)
      * @param dirRemote dirRemote remote directory (backup files)
-     * @param action take action or leave as is
+     * @param action
      */
     public Backup(final File workDir, final File dirRemote, final boolean action) {
         this(workDir, dirRemote, DEFAULT_HASHTYPE, DEFAULT_VERIFY, action);
