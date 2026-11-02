@@ -17,9 +17,9 @@ public final class FileInfo implements Comparable<FileInfo>, Serializable {
 
     private final Path path;
 
-    private final LocalDateTime dateTime;
-
     private String title;
+
+    private final LocalDateTime dateTime;
 
 
     /**
@@ -61,7 +61,7 @@ public final class FileInfo implements Comparable<FileInfo>, Serializable {
             this.title = "";
 
         } else if (title.contains(Copyright.FIELD_DELIMITER)) {
-            //need to remove , otherwise creating CSV file has issues
+            //need to remove, otherwise creating CSV file has issues
             LOGGER.info("removed '{}' from {}, title is {}", Copyright.FIELD_SEPARATOR, path.getFileName().toString(), title);
             this.title = title.replace(Copyright.FIELD_DELIMITER, "");
 

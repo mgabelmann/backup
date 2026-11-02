@@ -69,3 +69,4 @@ are copied. The last modified date is used if the file exists in both locations.
 ## New Features / Issues
 * need to resize images that are too large to be zipped
 * give user feedback in the UI when errors occur
+* add error messages if there are no images or no case number when 'Process' button is pressed
