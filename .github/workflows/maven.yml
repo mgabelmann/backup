@@ -1,5 +1,5 @@
 #this workflow will build the project
-name: Java CI with Maven
+name: Java CI with Maven 4.1
 
 on:
   push:
@@ -25,7 +25,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Set up Maven 4.1.0
+        uses: stcarolas/setup-maven@v5
+        with:
+          maven-version: '4.1.0'
+
+      - name: Build with Maven 4.1.0
         run: mvn -s $GITHUB_WORKSPACE/.github/workflows/settings.xml -B verify
         env:
           GITHUB_TOKEN: ${{ github.token }}
