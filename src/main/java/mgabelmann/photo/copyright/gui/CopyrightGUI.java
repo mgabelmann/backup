@@ -1,32 +1,24 @@
 package mgabelmann.photo.copyright.gui;
 
+import com.github.lgooddatepicker.components.DatePickerSettings;
+import com.github.lgooddatepicker.tableeditors.DateTableEditor;
 import mgabelmann.photo.copyright.Copyright;
 import mgabelmann.photo.copyright.FileInfo;
 import mgabelmann.photo.workflow.exception.WorkflowException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -37,6 +29,9 @@ import java.util.ResourceBundle;
 public class CopyrightGUI extends JFrame {
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(CopyrightGUI.class);
+
+    public static final String DATE_FORMAT_YEARMONTHDAY = "uuuu-MM-dd";
+
 
     /** REGEX for JPG or JPEG files. */
     private static final String FILE_FILTER_JPEG = ".*\\.jpe?g";
@@ -63,6 +58,8 @@ public class CopyrightGUI extends JFrame {
     private CopyrightOptionsPanel cop;
 
     private JFileChooser chooser;
+
+    private DateTableEditor dateEditor;
 
 
     //FEATURE: for published photos add a column that has the published date to the JTable that can be edited, otherwise disable/hide
@@ -114,14 +111,28 @@ public class CopyrightGUI extends JFrame {
         this.editMenu.add(this.addDirectoryMenuItem);
         this.editMenu.add(this.removeMenuItem);
 
-        this.tableModel1 = new FileInfoTableModel(resourceBundle, copyright.getFileInfos(), DateTimeFormatter.ofPattern(FileInfoTableModel.DATE_FORMAT_YEARMONTHDAY));
+        this.tableModel1 = new FileInfoTableModel(resourceBundle, copyright.getFileInfos());
 
-        this.table1 = new JTable();
+        RowCellRenderer cellRenderer = new RowCellRenderer();
+
+        this.table1 = new JTable() {
+            @Override
+            public Component prepareEditor(TableCellEditor editor, int row, int column) {
+                Component c = super.prepareEditor(editor, row, column);
+
+                // Check if the component is a text field (the default String editor)
+                if (c instanceof JTextField textField) {
+                    textField.setBackground(RowCellRenderer.COLOR_EDITING_CELL);
+                }
+
+                return c;
+            }
+        };
+
         this.table1.setFillsViewportHeight(true);
-        this.table1.addColumn(new TableColumn());
-        this.table1.addColumn(new TableColumn());
         this.table1.setModel(this.tableModel1);
-        this.table1.setDefaultRenderer(Object.class, new RowCellRenderer());
+        this.table1.setDefaultRenderer(Object.class, cellRenderer);
+        this.table1.setRowHeight(30);
 
         this.scrollPane1 = new JScrollPane();
         this.scrollPane1.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -142,6 +153,19 @@ public class CopyrightGUI extends JFrame {
         this.panel1.add(button2, BorderLayout.EAST);
 
         this.cop = new CopyrightOptionsPanel(copyright);
+
+        //change calendar widget date format
+        DatePickerSettings datePickerSettings = new DatePickerSettings();
+        datePickerSettings.setFormatForDatesCommonEra(DATE_FORMAT_YEARMONTHDAY);
+        datePickerSettings.setColor(DatePickerSettings.DateArea.TextFieldBackgroundValidDate, RowCellRenderer.COLOR_EDITING_CELL);
+
+        //use a fancy date picker
+        this.dateEditor = new DateTableEditor();
+        this.dateEditor.getDatePicker().setSettings(datePickerSettings);
+        this.dateEditor.getDatePicker().getComponentDateTextField().setBorder(BorderFactory.createEmptyBorder());
+
+        TableColumn dateColumn = this.table1.getColumnModel().getColumn(2);
+        dateColumn.setCellEditor(this.dateEditor);
 
         this.getContentPane().add(cop, BorderLayout.NORTH);
         this.getContentPane().add(scrollPane1, BorderLayout.CENTER);

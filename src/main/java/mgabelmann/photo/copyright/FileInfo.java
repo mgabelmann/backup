@@ -17,7 +17,7 @@ public final class FileInfo implements Comparable<FileInfo>, Serializable {
 
     private final Path path;
 
-    private final LocalDateTime dateTime;
+    private LocalDateTime dateTime;
 
     private String title;
 
@@ -35,12 +35,10 @@ public final class FileInfo implements Comparable<FileInfo>, Serializable {
 //        } else if (!Files.exists(path)) {
 //            throw new IllegalArgumentException("path does not exist");
 
-        } else if (dateTime == null) {
-            throw new IllegalArgumentException("dateTime can not be null");
         }
 
         this.path = path;
-        this.dateTime = dateTime;
+        this.setDateTime(dateTime);
         this.setTitle(title);
     }
 
@@ -50,6 +48,14 @@ public final class FileInfo implements Comparable<FileInfo>, Serializable {
 
     public LocalDateTime getDateTime() {
         return dateTime;
+    }
+
+    public void setDateTime(final LocalDateTime dateTime) {
+        if (dateTime == null) {
+            throw new IllegalArgumentException("dateTime can not be null");
+        }
+
+        this.dateTime = dateTime;
     }
 
     public String getTitle() {
@@ -72,6 +78,14 @@ public final class FileInfo implements Comparable<FileInfo>, Serializable {
 
     public LocalDate getDate() {
         return dateTime.toLocalDate();
+    }
+
+    public void setDate(final LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("date can not be null");
+        }
+
+        this.dateTime = date.atStartOfDay();
     }
 
     public String getName() {

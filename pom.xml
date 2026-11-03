@@ -95,6 +95,12 @@
             <version>1.9.0</version>
         </dependency>
 
+        <!-- custom date picker -->
+        <dependency>
+            <groupId>com.github.lgooddatepicker</groupId>
+            <artifactId>LGoodDatePicker</artifactId>
+            <version>11.2.1</version>
+        </dependency>
 
         <!-- TESTING -->
         <dependency>
@@ -111,7 +117,4 @@
         </plugins>
     </build>
 
-    <reports>
-
-    </reports>
 </project>
