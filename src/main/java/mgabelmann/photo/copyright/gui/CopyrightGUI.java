@@ -133,6 +133,7 @@ public class CopyrightGUI extends JFrame {
         this.table1.setFillsViewportHeight(true);
         this.table1.setModel(this.tableModel1);
         this.table1.setDefaultRenderer(Object.class, cellRenderer);
+        this.table1.setRowHeight(30);
 
         this.scrollPane1 = new JScrollPane();
         this.scrollPane1.setBorder(new EmptyBorder(5, 5, 5, 5));
