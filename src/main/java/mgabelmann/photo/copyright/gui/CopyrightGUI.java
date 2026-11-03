@@ -122,7 +122,7 @@ public class CopyrightGUI extends JFrame {
 
                 // Check if the component is a text field (the default String editor)
                 if (c instanceof JTextField textField) {
-                    textField.setBackground(RowCellRenderer.colorEditingCell);
+                    textField.setBackground(RowCellRenderer.COLOR_EDITING_CELL);
                 }
 
                 return c;
@@ -157,7 +157,7 @@ public class CopyrightGUI extends JFrame {
         //change calendar widget date format
         DatePickerSettings datePickerSettings = new DatePickerSettings();
         datePickerSettings.setFormatForDatesCommonEra(DATE_FORMAT_YEARMONTHDAY);
-        datePickerSettings.setColor(DatePickerSettings.DateArea.TextFieldBackgroundValidDate, RowCellRenderer.colorEditingCell);
+        datePickerSettings.setColor(DatePickerSettings.DateArea.TextFieldBackgroundValidDate, RowCellRenderer.COLOR_EDITING_CELL);
 
         //use a fancy date picker
         this.dateEditor = new DateTableEditor();
@@ -166,7 +166,6 @@ public class CopyrightGUI extends JFrame {
 
         TableColumn dateColumn = this.table1.getColumnModel().getColumn(2);
         dateColumn.setCellEditor(this.dateEditor);
-        //dateColumn.setCellRenderer(this.dateEditor);
 
         this.getContentPane().add(cop, BorderLayout.NORTH);
         this.getContentPane().add(scrollPane1, BorderLayout.CENTER);
