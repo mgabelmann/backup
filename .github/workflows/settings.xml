@@ -26,7 +26,7 @@
             <id>github</id>
             <!-- GitHub PAT to only read packages -->
             <username>mgabelmann</username>
-            <password>${ACTION_PAT}</password>
+            <password>${ACTIONS}</password>
         </server>
     </servers>
 
