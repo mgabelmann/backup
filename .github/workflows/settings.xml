@@ -26,9 +26,19 @@
             <id>github</id>
             <!-- GitHub PAT to only read packages -->
             <username>mgabelmann</username>
-            <password>${ACTION_PAT}</password>
+            <password>${ACTIONS}</password>
         </server>
     </servers>
+
+    <mirrors>
+        <mirror>
+            <id>central</id>
+            <!-- Match everything EXCEPT your private GitHub Packages repo -->
+            <mirrorOf>*,!github</mirrorOf>
+            <name>Maven Central Override</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </mirror>
+    </mirrors>
 
     <activeProfiles>
         <activeProfile>github</activeProfile>
