@@ -2,6 +2,15 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
 
+    <servers>
+        <server>
+            <id>github</id>
+            <!-- GitHub PAT to only read packages -->
+            <username>${env.GITHUB_ACTOR}</username>
+            <password>${env.ACTIONS}</password>
+        </server>
+    </servers>
+
     <profiles>
         <profile>
             <id>github</id>
@@ -20,15 +29,6 @@
             </repositories>
         </profile>
     </profiles>
-
-    <servers>
-        <server>
-            <id>github</id>
-            <!-- GitHub PAT to only read packages -->
-            <username>mgabelmann</username>
-            <password>${ACTION_PAT}</password>
-        </server>
-    </servers>
 
     <activeProfiles>
         <activeProfile>github</activeProfile>
