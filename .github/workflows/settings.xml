@@ -13,10 +13,10 @@
 
     <mirrors>
         <mirror>
-            <id>maven-central-fix</id>
+            <id>central</id>
             <!-- Match everything EXCEPT your private GitHub Packages repo -->
             <mirrorOf>*,!github</mirrorOf>
-            <name>Maven Central</name>
+            <name>Maven Central Override</name>
             <url>https://repo.maven.apache.org/maven2</url>
         </mirror>
     </mirrors>
