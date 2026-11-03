@@ -19,7 +19,7 @@ public class RowCellRenderer extends DefaultTableCellRenderer {
         Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         c.setFont(c.getFont().deriveFont(Font.PLAIN));
 
-        if (hasFocus && column == 1) {
+        if (hasFocus && (column == 1 || column == 2)) {
             //for editing a cell
             this.setBackground(Color.cyan);
 

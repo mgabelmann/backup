@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -22,16 +22,13 @@ public class FileInfoTableModel extends AbstractTableModel {
 
     private final EventListenerList listenerList;
 
-    private final DateTimeFormatter formatter;
-
     private final ResourceBundle resourceBundle;
 
 
-    public FileInfoTableModel(final ResourceBundle resourceBundle, List<FileInfo> data, final DateTimeFormatter formatter) {
+    public FileInfoTableModel(final ResourceBundle resourceBundle, List<FileInfo> data) {
         this.listenerList = new EventListenerList();
         this.resourceBundle = resourceBundle;
         this.data = data;
-        this.formatter = formatter;
     }
 
     private String getResourceByKey(final String key) {
@@ -75,14 +72,15 @@ public class FileInfoTableModel extends AbstractTableModel {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         return switch (columnIndex) {
-            case 0, 1, 2 -> String.class;
+            case 0, 1 -> String.class;
+            case 2 -> LocalDate.class;
             default -> null;
         };
     }
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == 1;
+        return columnIndex == 1 || columnIndex == 2;
     }
 
     @Override
@@ -91,7 +89,7 @@ public class FileInfoTableModel extends AbstractTableModel {
         return switch (columnIndex) {
             case 0 -> fileInfo.getPath().getFileName();
             case 1 -> fileInfo.getTitle();
-            case 2 -> fileInfo.getDate().format(formatter);
+            case 2 -> fileInfo.getDate();
             default -> null;
         };
     }
@@ -102,7 +100,11 @@ public class FileInfoTableModel extends AbstractTableModel {
 
         if (columnIndex == 1) {
             fileInfo.setTitle((String) aValue);
+
+        } else if (columnIndex == 2) {
+            fileInfo.setDate((LocalDate) aValue);
         }
+
     }
 
     @Override
