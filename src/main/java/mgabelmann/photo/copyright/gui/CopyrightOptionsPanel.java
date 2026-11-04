@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -114,6 +115,12 @@ public class CopyrightOptionsPanel extends JPanel {
 
     public void updateImageCount() {
         textField3.setText("" + copyright.getFileInfos().size());
+
+        if (copyright.getFileInfos().size() > Copyright.IMAGES_PER_GROUP_REGISTRATION_MAX) {
+            String title = this.getResourceByKey("dialog.message.error");
+            String message = this.getResourceByKey("application.error.toomany") + Copyright.IMAGES_PER_GROUP_REGISTRATION_MAX;
+            JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
+        }
     }
 
 }
