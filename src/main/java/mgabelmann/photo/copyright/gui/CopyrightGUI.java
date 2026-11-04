@@ -58,7 +58,9 @@ public class CopyrightGUI extends JFrame {
     private JMenuBar menuBar;
     private JMenu fileMenu;
     private JMenu editMenu;
+    private JMenu helpMenu;
     private JMenuItem exitMenuItem;
+    private JMenuItem aboutMenuItem;
     private JMenuItem addFileMenuItem;
     private JMenuItem addDirectoryMenuItem;
     private JMenuItem removeMenuItem;
@@ -107,6 +109,9 @@ public class CopyrightGUI extends JFrame {
         this.exitMenuItem = new JMenuItem(getResourceByKey("menu.file.exit"));
         this.exitMenuItem.addActionListener(e -> System.exit(0));
 
+        this.aboutMenuItem = new JMenuItem(getResourceByKey("menu.help.about"));
+        this.aboutMenuItem.addActionListener(e -> about(this));
+
         this.addFileMenuItem = new JMenuItem(getResourceByKey("menu.edit.addfile"));
         this.addFileMenuItem.addActionListener(e -> add(false));
 
@@ -123,6 +128,9 @@ public class CopyrightGUI extends JFrame {
         this.editMenu.add(this.addFileMenuItem);
         this.editMenu.add(this.addDirectoryMenuItem);
         this.editMenu.add(this.removeMenuItem);
+
+        this.helpMenu = new JMenu(getResourceByKey("menu.help"));
+        this.helpMenu.add(this.aboutMenuItem);
 
         this.tableModel1 = new FileInfoTableModel(resourceBundle, copyright.getFileInfos());
 
@@ -155,6 +163,7 @@ public class CopyrightGUI extends JFrame {
         this.menuBar = new JMenuBar();
         this.menuBar.add(this.fileMenu);
         this.menuBar.add(this.editMenu);
+        this.menuBar.add(this.helpMenu);
         this.setJMenuBar(this.menuBar);
 
         this.button2 = new JButton(getResourceByKey("button.process"));
@@ -349,6 +358,14 @@ public class CopyrightGUI extends JFrame {
         tableModel1.fireTableDataChanged();
         table1.repaint();
         scrollPane1.updateUI();
+    }
+
+    /**
+     * About the application.
+     */
+    private void about(final JFrame frame) {
+        String message = getResourceByKey("dialog.about.message");
+        JOptionPane.showMessageDialog(frame, message, getResourceByKey("dialog.about"), JOptionPane.INFORMATION_MESSAGE);
     }
 
 }
