@@ -44,6 +44,9 @@ edit the titles as needed. The output artifacts are the same.
   * Add Directory - add a single directory and all its contents. recursive addition of files
   * Remove File(s) - if one or more files are selected they can be removed when this is selected
 
+* Help - help menu
+  * About... - display information about this application
+
 From the main UI you can change the output directory using the 'Browse' button. This is
 the location where the files are output. No images are added from this directory.
 
